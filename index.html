@@ -79,6 +79,17 @@ header {
 .catalog-table .desc { max-width:440px; color:var(--muted); }
 .catalog-table .save-row { padding:5px 9px; border:1px solid var(--accent); color:var(--accent); background:var(--accent-soft); border-radius:5px; cursor:pointer; }
 .catalog-table .add-row { padding:5px 9px; border:1px solid var(--green); color:var(--green); background:var(--green-soft); border-radius:5px; cursor:pointer; white-space:nowrap; }
+.catalog-table .add-row.selected { color:#fff; background:var(--green); }
+.selector-bundles { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+.selector-bundle { padding:7px 10px; border:1px solid var(--accent); border-radius:6px; background:var(--accent-soft); color:var(--accent); cursor:pointer; }
+.selector-summary {
+  position:sticky; bottom:12px; z-index:5; margin-top:12px; padding:10px 12px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border:1px solid #bfdbfe; border-radius:8px; background:rgba(255,255,255,.96);
+  box-shadow:0 4px 18px rgba(15,23,42,.14);
+}
+.selector-summary strong { color:var(--accent); }
+.selector-summary button { padding:7px 12px; border:1px solid var(--accent); border-radius:6px; background:var(--accent); color:#fff; cursor:pointer; }
 .provisional { display:inline-block; padding:1px 6px; border-radius:10px; color:#9d174d; background:#fce7f3; font-size:10px; font-weight:600; }
 .partner-only { display: none; }
 body.reseller .partner-only { display: flex; }
@@ -1529,20 +1540,35 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
       .sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
   }
 
-  function renderCatalogView(rootId, title, surface = null, intro = "") {
+  function renderCatalogView(rootId, title, surface = null, intro = "", selectorMode = false) {
     const root = document.getElementById(rootId);
     const rows = catalogRows(surface);
+    const surfaceBundles = selectorMode ? DATA.bundles.filter(b => b.surface === surface) : [];
     root.innerHTML = `
       <div class="catalog-head">
         <h2>${escapeHtml(title)}</h2>
         <input type="search" placeholder="Search ${escapeHtml(title.toLowerCase())}" data-catalog-search>
         <span style="color:var(--muted)">${rows.length} SKUs. ${escapeHtml(intro)}</span>
       </div>
+      ${surfaceBundles.length ? `<div class="selector-bundles">${surfaceBundles.map((b, i) => `<button class="selector-bundle" data-selector-bundle="${i}">${escapeHtml(b.name)}</button>`).join("")}</div>` : ""}
       <table class="catalog-table">
         <thead><tr><th>SKU</th><th>Category</th><th>Description</th><th>Occurrence</th><th>Price</th><th></th></tr></thead>
         <tbody></tbody>
-      </table>`;
+      </table>
+      ${selectorMode ? `<div class="selector-summary"><span data-selector-summary></span><button data-review-quote>Review quote</button></div>` : ""}`;
     const tbody = root.querySelector("tbody");
+    const summary = root.querySelector("[data-selector-summary]");
+    const updateSummary = () => {
+      if (!summary) return;
+      const selected = scenario.filter(r => SKU_BY_ID[r.id]?.surface === surface);
+      let monthly = 0, oneTime = 0;
+      selected.forEach(r => {
+        const total = computeRow(SKU_BY_ID[r.id], r.vol);
+        monthly += total.monthly;
+        oneTime += total.oneTime;
+      });
+      summary.innerHTML = `<strong>${selected.length} selected</strong> · ${eur(monthly, 0)}/mo · ${eur(oneTime, 0)} one-time`;
+    };
     const draw = (filter = "") => {
       const q = filter.trim().toLowerCase();
       tbody.innerHTML = rows.filter(s => !q || `${s.id} ${s.name} ${s.category} ${s.description}`.toLowerCase().includes(q)).map(s => `
@@ -1552,14 +1578,22 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
           <td class="desc">${escapeHtml(s.description)}</td>
           <td>${escapeHtml(s.unit)}</td>
           <td class="money">${fmtSkuPrice(s)}</td>
-          <td><button class="add-row" data-add="${escapeHtml(s.id)}">Add to quote</button></td>
+          <td><button class="add-row ${scenario.some(r => r.id === s.id) ? "selected" : ""}" data-add="${escapeHtml(s.id)}">${scenario.some(r => r.id === s.id) ? "Selected ✓" : "Add to quote"}</button></td>
         </tr>`).join("");
       tbody.querySelectorAll("[data-add]").forEach(btn => btn.addEventListener("click", () => {
-        addToScenario(btn.dataset.add);
-        setView("quote");
+        if (scenario.some(r => r.id === btn.dataset.add)) removeFromScenario(btn.dataset.add);
+        else addToScenario(btn.dataset.add);
+        if (selectorMode) draw(root.querySelector("[data-catalog-search]").value);
+        else setView("quote");
       }));
+      updateSummary();
     };
     root.querySelector("[data-catalog-search]").addEventListener("input", e => draw(e.target.value));
+    root.querySelectorAll("[data-selector-bundle]").forEach(btn => btn.addEventListener("click", () => {
+      applyBundle(surfaceBundles[Number(btn.dataset.selectorBundle)]);
+      draw(root.querySelector("[data-catalog-search]").value);
+    }));
+    root.querySelector("[data-review-quote]")?.addEventListener("click", () => setView("quote"));
     draw();
   }
 
@@ -1782,8 +1816,8 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
 
   function renderAllCatalogViews() {
     renderCatalogView("overview-view", "SKU overview", null, "Canonical catalog with current runtime overrides.");
-    renderCatalogView("account-origination-view", "Account Origination", "account-origination", "Dedicated AO, KYB, workflow, and backoffice package surface.");
-    renderCatalogView("aletheia-view", "Aletheia", "aletheia", "Provisional doc-forensics pricing, kept separate from the general SKU grid.");
+    renderCatalogView("account-origination-view", "Account Origination", "account-origination", "Select AO, KYB, workflow, and backoffice services. Selections stay here until you review the quote.", true);
+    renderCatalogView("aletheia-view", "Aletheia", "aletheia", "Select forensic-document services and bundles. Selections stay here until you review the quote.", true);
     if (DATA.internal) renderMaintenance();
   }
 
