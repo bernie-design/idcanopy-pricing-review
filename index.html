@@ -1,0 +1,1575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IDCanopy Pricing Cockpit</title>
+<style>
+:root {
+  --bg: #f7f7f8;
+  --panel: #ffffff;
+  --border: #e4e6ea;
+  --text: #1f2329;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --amber: #d97706;
+  --amber-soft: #fef3c7;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --premium: #7c3aed;
+  --premium-soft: #ede9fe;
+  --block-a-bg: #f0f9ff;
+  --block-a-border: #bae6fd;
+  --block-b-bg: #fefce8;
+  --block-b-border: #fde68a;
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 1px rgba(0,0,0,.03);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 61px;
+  z-index: 10;
+}
+.tab {
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.tab.active { color: var(--accent); background: var(--accent-soft); border-color: #bfdbfe; font-weight: 600; }
+.view { display: none; padding: 16px 24px 32px; }
+.view.active { display: block; }
+.catalog-head { display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+.catalog-head h2 { margin:0; font-size:18px; }
+.catalog-head input { min-width:280px; padding:7px 10px; border:1px solid var(--border); border-radius:6px; font:inherit; }
+.catalog-table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--border); }
+.catalog-table th, .catalog-table td { padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; font-size:12.5px; }
+.catalog-table th { position:sticky; top:106px; background:var(--bg); color:var(--muted); font-weight:600; z-index:2; }
+.catalog-table input, .catalog-table select { width:100%; min-width:100px; padding:5px 6px; border:1px solid var(--border); border-radius:5px; font:inherit; }
+.catalog-table .money { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.catalog-table .desc { max-width:440px; color:var(--muted); }
+.catalog-table .save-row { padding:5px 9px; border:1px solid var(--accent); color:var(--accent); background:var(--accent-soft); border-radius:5px; cursor:pointer; }
+.catalog-table .add-row { padding:5px 9px; border:1px solid var(--green); color:var(--green); background:var(--green-soft); border-radius:5px; cursor:pointer; white-space:nowrap; }
+.provisional { display:inline-block; padding:1px 6px; border-radius:10px; color:#9d174d; background:#fce7f3; font-size:10px; font-weight:600; }
+h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+h1 .brand { color: var(--accent); }
+.field { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.field label { color: var(--muted); font-weight: 500; }
+.field input, .field select {
+  font: inherit;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.field.numeric input {
+  width: 110px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+main {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  padding: 16px 24px 32px;
+  min-height: calc(100vh - 130px);
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+/* Distributor band */
+.distributor {
+  background: linear-gradient(to right, var(--accent-soft), #eff6ff);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  position: sticky;
+  top: 106px;
+  z-index: 9;
+}
+.distributor strong { font-weight: 600; }
+.distributor .help { color: var(--muted); font-size: 12px; }
+/* Left panel */
+.left .search-wrap {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 1;
+}
+.left .search-wrap input {
+  width: 100%;
+  padding: 7px 10px;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.left .categories {
+  padding: 8px 0;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+.cat-group { border-bottom: 1px solid var(--border); }
+.cat-group:last-child { border-bottom: none; }
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  user-select: none;
+}
+.cat-header:hover { background: var(--bg); }
+.cat-header .icon { font-size: 16px; }
+.cat-header .count {
+  margin-left: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.cat-header .arrow { color: var(--muted); transition: transform .15s; }
+.cat-group.collapsed .cat-header .arrow { transform: rotate(-90deg); }
+.cat-group.collapsed .pills { display: none; }
+.pills {
+  padding: 4px 8px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pill {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 12.5px;
+  align-items: center;
+}
+.pill:hover { background: var(--accent-soft); border-color: var(--accent); }
+.pill[data-status="parked"] { opacity: 0.45; cursor: not-allowed; }
+.pill[data-status="parked"]:hover { background: var(--bg); border-color: transparent; }
+.pill[data-status="premium"] { background: var(--premium-soft); }
+.pill[data-status="premium"]:hover { background: #ddd6fe; border-color: var(--premium); }
+.pill .name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pill .price {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.pill[data-status="premium"] .price { color: var(--premium); font-weight: 600; }
+/* Right panel */
+.right { display: flex; flex-direction: column; gap: 16px; }
+.scenario-panel { padding: 0; }
+.scenario-head {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--panel);
+}
+.scenario-head .count { color: var(--muted); font-weight: 400; font-size: 12px; }
+.scenario-head .clear-btn {
+  margin-left: auto;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.scenario-head .clear-btn:hover { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+.block-band {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 1px solid var(--border);
+}
+.block-band.block-a { background: var(--block-a-bg); color: #075985; border-top: 2px solid var(--block-a-border); }
+.block-band.block-b { background: var(--block-b-bg); color: #92400e; border-top: 2px solid var(--block-b-border); }
+.block-band .totals {
+  margin-left: auto;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+}
+.scenario-empty {
+  padding: 36px 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+/* Block A row: SKU info | price | qty | total | remove */
+.row-a {
+  display: grid;
+  grid-template-columns: 1fr 110px 90px 110px 26px;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+}
+/* Block B row: SKU info | price | share | vol/mo | total | remove */
+.row-b {
+  display: grid;
+  grid-template-columns: 1fr 110px 80px 110px 110px 26px;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.row-a:last-child, .row-b:last-child { border-bottom: none; }
+.row-a:hover, .row-b:hover { background: var(--bg); }
+.sku-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sku-name {
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sku-meta { font-size: 11px; color: var(--muted); }
+.sku-meta .badge {
+  display: inline-block;
+  padding: 0 5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 10px;
+  margin-right: 4px;
+}
+.sku-meta .badge.plus-base {
+  background: #dbeafe;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.price-cell {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+.share-cell, .vol-cell, .qty-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.share-cell input, .vol-cell input, .qty-cell input {
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.share-cell input { width: 50px; }
+.vol-cell input { width: 78px; }
+.qty-cell input { width: 78px; }
+.share-cell input.manual { background: var(--bg); color: var(--muted); }
+.share-cell input:focus, .vol-cell input:focus, .qty-cell input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+.share-cell .pct, .vol-cell .unit-suffix, .qty-cell .unit-suffix {
+  font-size: 11px;
+  color: var(--muted);
+}
+.share-cell .reset {
+  font-size: 10px;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.total-cell {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 500;
+}
+.remove-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.remove-btn:hover { background: var(--red-soft); color: var(--red); }
+/* Suggestions / Bundles */
+.suggestions, .bundles { padding: 0; }
+.suggestions-head, .bundles-head {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.suggestions-head .icon, .bundles-head .icon { font-size: 14px; }
+.suggestions-list, .bundles-list { padding: 8px 14px; display: flex; flex-direction: column; gap: 6px; }
+.suggestions-list:empty::before, .bundles-list:empty::before {
+  content: "Nothing relevant right now.";
+  color: var(--muted);
+  font-size: 12px;
+}
+.sugg-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--amber-soft);
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  align-items: center;
+}
+.sugg-card .text { font-size: 12.5px; }
+.sugg-card .text strong { font-weight: 600; }
+.sugg-card .text .reason { color: #92400e; font-size: 11.5px; display: block; margin-top: 1px; }
+.sugg-card button {
+  padding: 5px 10px;
+  background: var(--amber);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.sugg-card button:hover { background: #b45309; }
+.bundle-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  align-items: center;
+}
+.bundle-card .text strong { font-weight: 600; }
+.bundle-card .text .desc { color: var(--muted); font-size: 12px; display: block; margin-top: 1px; }
+.bundle-card button {
+  padding: 5px 10px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.bundle-card button:hover { background: #1d4ed8; }
+/* Totals */
+.totals { padding: 14px; }
+.totals-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.tile {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.tile .lbl { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tile .val { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.tile.primary { background: var(--accent-soft); border-color: var(--accent); }
+.tile.primary .val { color: var(--accent); font-size: 22px; }
+.tile.green { background: var(--green-soft); border-color: var(--green); }
+.tile.green .val { color: var(--green); }
+.tile.amber { background: var(--amber-soft); border-color: var(--amber); }
+.tile.amber .val { color: var(--amber); }
+.compare-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.compare-table th, .compare-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+.compare-table th { text-align: left; font-weight: 500; color: var(--muted); }
+.compare-table tr.recommended { background: var(--green-soft); }
+.compare-table tr.recommended td:first-child { font-weight: 600; color: var(--green); }
+.actions { padding: 14px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--border); }
+.btn {
+  padding: 7px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn:hover { background: var(--bg); }
+.btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn.primary:hover { background: #1d4ed8; }
+.notes { padding: 0 14px 14px; }
+.notes textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+@media print {
+  header, .tabs, .distributor { position: static; }
+  .left, .suggestions, .bundles, .actions, .notes textarea { display: none; }
+  main { grid-template-columns: 1fr; padding: 0; }
+  .panel { box-shadow: none; border: 1px solid #ddd; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="brand">IDCanopy</span> Pricing Cockpit</h1>
+  <div class="field">
+    <label for="customer">Customer</label>
+    <input id="customer" type="text" placeholder="Customer name" style="width: 200px">
+  </div>
+  <div class="field">
+    <label for="term">Term</label>
+    <select id="term">
+      <option>PAYG</option>
+      <option>Prepaid 12mo</option>
+      <option>Prepaid 24mo</option>
+      <option selected>Prepaid 36mo</option>
+    </select>
+  </div>
+  <div class="field" style="margin-left:auto">
+    <span id="status-msg" style="font-size:12px; color: var(--muted)"></span>
+  </div>
+</header>
+<nav class="tabs">
+  <button class="tab active" data-view="quote">Quote builder</button>
+  <button class="tab" data-view="overview">SKU overview</button>
+  <button class="tab" data-view="maintenance">Maintenance</button>
+  <button class="tab" data-view="account-origination">Account Origination</button>
+  <button class="tab" data-view="aletheia">Aletheia</button>
+</nav>
+<div class="distributor">
+  <strong>Volume distributor</strong>
+  <div class="field numeric">
+    <label for="annual-apps">Annual applications</label>
+    <input id="annual-apps" type="number" min="0" step="1000" value="0">
+  </div>
+  <div class="field numeric">
+    <label for="existing-base">Existing customer base</label>
+    <input id="existing-base" type="number" min="0" step="1000" value="0">
+  </div>
+  <button class="btn" id="reset-shares-btn" style="padding: 4px 10px; font-size: 12px;">Reset shares to defaults</button>
+  <span class="help">Per-row Share % distributes the throughput; volumes auto-derive but can be overridden manually.</span>
+</div>
+<main id="quote-view">
+  <section class="panel left">
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Search SKUs (name, description, route…)">
+    </div>
+    <div class="categories" id="categories"></div>
+  </section>
+  <section class="right">
+    <div class="panel scenario-panel">
+      <div class="scenario-head">
+        <span>Scenario</span>
+        <span class="count" id="scenario-count"></span>
+        <button class="clear-btn" id="clear-btn">Clear all</button>
+      </div>
+      <div class="block-band block-a">
+        <span>🏛 Setup, license &amp; maintenance</span>
+        <span class="totals" id="block-a-totals"></span>
+      </div>
+      <div id="block-a-rows"></div>
+      <div class="block-band block-b">
+        <span>⚡ Transactions</span>
+        <span class="totals" id="block-b-totals"></span>
+      </div>
+      <div id="block-b-rows"></div>
+    </div>
+    <div class="panel suggestions">
+      <div class="suggestions-head"><span class="icon">💡</span> Suggestions</div>
+      <div class="suggestions-list" id="suggestions-list"></div>
+    </div>
+    <div class="panel bundles">
+      <div class="bundles-head"><span class="icon">📚</span> Bundles (one-click presets)</div>
+      <div class="bundles-list" id="bundles-list"></div>
+    </div>
+    <div class="panel totals" id="totals"></div>
+    <div class="panel notes">
+      <div style="padding: 8px 14px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13px;">Notes</div>
+      <div style="padding: 10px 14px;"><textarea id="notes-area" placeholder="Free-text notes for the offer (out-of-grid items, custom terms, scope notes…)"></textarea></div>
+    </div>
+    <div class="panel actions">
+      <button class="btn primary" id="copy-btn">📋 Copy summary</button>
+      <button class="btn" id="print-btn">🖨️ Print / PDF</button>
+      <button class="btn" id="save-btn">💾 Save scenario</button>
+      <button class="btn" id="load-btn">📂 Load…</button>
+      <button class="btn" id="export-btn">⤓ Export JSON</button>
+      <button class="btn" id="import-btn">⤒ Import JSON</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none">
+    </div>
+  </section>
+</main>
+<section class="view" id="overview-view"></section>
+<section class="view" id="maintenance-view"></section>
+<section class="view" id="account-origination-view"></section>
+<section class="view" id="aletheia-view"></section>
+<script id="cockpit-data" type="application/json">{"skus": [{"id": "PLAT-CANOPY-FI", "name": "Umbrella Canopy (Financial Institution)", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "KYC orchestration platform for FI customers; full integration suite, no-code portal optional.", "unit": "setup", "list_price": 10000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD, GDPR, eIDAS", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-CANOPY-NONFI", "name": "Umbrella Canopy (non-FI)", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "KYC orchestration platform for non-regulated customers.", "unit": "setup", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD, GDPR", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-CANOPY-RECURRING", "name": "Umbrella Canopy annual (hosted no-code portal)", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-recurring", "description": "Annual platform fee for the hosted no-code portal variant.", "unit": "year", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-PERSONA-CLOSED", "name": "Umbrella Persona — closed loop eID", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Reusable eID, eSigning, authorization platform; closed-loop deployment.", "unit": "setup", "list_price": 15000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "eIDAS", "status": "active", "note": "recurring €7,500 pa", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-PERSONA-OPEN", "name": "Umbrella Persona — open loop eID", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Open-loop eID + eSigning platform.", "unit": "setup", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "eIDAS", "status": "active", "note": "recurring €2,500 pa", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-PERSONA-CUSTOM", "name": "Umbrella Persona — custom eSigning", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Custom eSigning workflow on the Persona platform.", "unit": "setup", "list_price": 6000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "eIDAS", "status": "active", "note": "recurring €1,000 pa", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-CORP-INVTOOL", "name": "Umbrella Corporate — Investigation Tool", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "KYB investigation tool, included in Corporate platform.", "unit": "setup", "list_price": 500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "recurring €500 pa", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "PLAT-CORP-KYBSETUP", "name": "Umbrella Corporate — KYB Setup", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Initial KYB programme configuration (1 template included).", "unit": "setup", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "includes 1 KYB template", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "PLAT-CORP-AOSETUP", "name": "Account Origination — Base Setup", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Platform onboarding + 1 default template + default workflow + sandbox + 1 acceptance round. Distinct from KYB Setup (per-programme, €5k each).", "unit": "setup", "list_price": 10000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Phase 2 interview — flat base. Workflow customization is the chief scope multiplier (see WORKFLOW-LIGHT/STANDARD/HEAVY). Distinct from KYB Setup.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "PLAT-CORP-HOSTED", "name": "Umbrella Corporate — Hosted Onboarding", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Hosted onboarding portal for KYB cases.", "unit": "setup", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "recurring €5,000 pa", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "PLAT-CORP-BACKOFFICE", "name": "KYB Backoffice (modular — pick & mix)", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-setup", "description": "Backoffice / case-management cockpit. Pick a la carte from the BO-* SKUs in the Corporate program. 'Standard' anchor (GUI + IAM + Dashboard + Admin + Audit) = €21.5k. Maintenance = 20% of selected setup pa, capped at €20k.", "unit": "setup", "list_price": "pick & mix", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Phase 2 interview — modular pick-and-mix. Joint Product (€155.5k Namirial sheet) is build-cost for IDCanopy/Namirial joint product, NOT a customer SKU. Multi-tenancy / frontend builder / workflow orchestrator are off-grid for v1; custom-quote if needed.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "PLAT-UNITY", "name": "Umbrella Unity (Swiss-Army-Knife SaaS)", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-saas", "description": "All-in-one SaaS platform combining other Umbrella modules.", "unit": "setup", "list_price": 0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "free; no options", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PLAT-INSIGHT", "name": "Umbrella Insight (Case Management + TX Monitoring)", "category": "Platform", "icon": "🏛", "program": "Umbrella Platform", "subcategory": "platform-custom", "description": "Case management + transaction monitoring platform.", "unit": "setup", "list_price": "custom", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PKG-FREE", "name": "Free package", "category": "Packages", "icon": "📦", "program": "Umbrella Packages", "subcategory": "package", "description": "Entry tier; 1k API calls/month; €0.10 per extra call.", "unit": "month", "list_price": 0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PKG-BASIC", "name": "Basic package", "category": "Packages", "icon": "📦", "program": "Umbrella Packages", "subcategory": "package", "description": "10k API calls/month; €0.25 per extra call; €1k min monthly commitment.", "unit": "month", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PKG-PRO", "name": "Professional package", "category": "Packages", "icon": "📦", "program": "Umbrella Packages", "subcategory": "package", "description": "80k API calls/month; €0.10625 per extra; SLA upgrades available; 5h support.", "unit": "month", "list_price": 8500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PKG-ENT", "name": "Enterprise package", "category": "Packages", "icon": "📦", "program": "Umbrella Packages", "subcategory": "package", "description": "250k API calls/month; €0.05 per extra; dedicated AM; 10h support; Assurance SLA included.", "unit": "month", "list_price": 12500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "Assurance", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PKG-STARTER", "name": "Starter (SaaS standalone)", "category": "Packages", "icon": "📦", "program": "Umbrella Packages", "subcategory": "package", "description": "Self-serve SaaS; no SLA support; no ticketing.", "unit": "month", "list_price": 100, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "SLA-ESSENTIALS", "name": "SLA Essentials", "category": "SLA", "icon": "🎯", "program": "Umbrella SLA", "subcategory": "sla", "description": "Basic monitoring and support — included with all packages.", "unit": "month", "list_price": 0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "SLA-ASSURANCE", "name": "SLA Assurance", "category": "SLA", "icon": "🎯", "program": "Umbrella SLA", "subcategory": "sla", "description": "Enhanced support, higher reliability targets. €18k pa equivalent.", "unit": "month", "list_price": 1500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "SLA-PINNACLE", "name": "SLA Pinnacle", "category": "SLA", "icon": "🎯", "program": "Umbrella SLA", "subcategory": "sla", "description": "Elite support, advanced monitoring, personalized service. €30k pa equivalent.", "unit": "month", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-WORKSHOP", "name": "Requirements workshop", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "Scoping workshop, 1–8 weeks. **Free** if AO Setup or comparable contract is signed within 90 days; **€3,000** otherwise (deductible from setup fee on signature).", "unit": "one-time", "list_price": "0 / 3000", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Phase 2 interview — workshop becomes conditional-paid to filter tire-kickers; refunded as setup credit on signature.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-SOW", "name": "Custom Statement of Work", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "Time & material; minimum €1,000.", "unit": "project", "list_price": 1000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-INTEGRATION", "name": "Integration Agreement (3-month)", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "3-month pre-contract integration with test quota; deductible from setup fee.", "unit": "one-time", "list_price": 3000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-CONTRACT-CHANGE", "name": "Material contract change", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "Per-instance fee for material contract amendment.", "unit": "one-time", "list_price": 6000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-ACCEPTANCE", "name": "Acceptance test (extra)", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "Two acceptance tests included free; €2,000 each thereafter.", "unit": "one-time", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-HYPERCARE", "name": "Hyper Care", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "Post-launch high-availability support, per week.", "unit": "week", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "PROJ-TRAINING", "name": "Training & Documentation", "category": "Project services", "icon": "🛠", "program": "Umbrella Project", "subcategory": "project", "description": "Platform training and documentation handover.", "unit": "one-time", "list_price": 3500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "KYC-SELF-DOC", "name": "Self KYC — Document Verification (optical/NFC)", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-ident", "description": "OCR + lexical verification of a government-issued ID. Main self-ident component.", "unit": "transaction", "list_price": 0.8, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD, eIDAS", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-FORENSIC", "name": "Self KYC — Extra forensics", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Advanced tampering / anti-forgery checks on the ID document.", "unit": "transaction", "list_price": 0.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "aletheia"}, {"id": "KYC-SELF-BIOMATCH", "name": "Self KYC — Biometric matching", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Match person to ID portrait via biometric algorithm.", "unit": "transaction", "list_price": 0.2, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-LIVENESS", "name": "Self KYC — Liveness (person & ID)", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Genuine Presence Assurance for person and ID document.", "unit": "transaction", "list_price": 0.2, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-MORPHOVAL", "name": "Self KYC — MorphoVal (manual)", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Morphological validation of the document, performed by a human ID expert.", "unit": "transaction", "list_price": 0.8, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-ARTIFACT", "name": "Self KYC — Biometric Artifact", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Video stream of the onboarding session, retained for review.", "unit": "transaction", "list_price": 0.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-1NREPEAT", "name": "Self KYC — 1:N repeat fraud check (PAYG)", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Per-transaction match against historical biometric set to detect repeat fraud.", "unit": "transaction", "list_price": 0.75, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-1NREPEAT-PREP", "name": "Self KYC — 1:N repeat fraud (Prepaid)", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Bulk-prepaid 1:N fraud protection; min order 100k.", "unit": "transaction", "list_price": 0.62, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "min order 100k; prepaid commitment", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-SELF-PHOTOPLUS", "name": "Self KYC — Photo Ident PLUS upgrade", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Multiple OCR + verification services in parallel for max conversion + security.", "unit": "transaction", "list_price": 0.75, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-IDV-PROTOCOL", "name": "IDV Protocol PDF", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-output", "description": "PDF summary of the identification.", "unit": "transaction", "list_price": 0.15, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "KYC-IDV-PROTOCOL-LTA", "name": "IDV Protocol — LTA-signed PDF", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-output", "description": "Long-term-archive-grade signed PDF summary.", "unit": "transaction", "list_price": 0.6, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "KYC-PRECHECK-FAIL", "name": "Pre-check fail", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-decline", "description": "Charged when the handshake match returns a fail outcome.", "unit": "transaction", "list_price": 0.4, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 5, "surface": "general"}, {"id": "KYC-NFC-IDIMG", "name": "Extra verified ID image (NFC)", "category": "KYC — Self", "icon": "🪪", "program": "Umbrella ID (Self KYC)", "subcategory": "transaction-addon", "description": "Extra verified ID image read from the chip for NFC flows.", "unit": "transaction", "list_price": 0.8, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-AUTO-2P2-T1", "name": "2+2 KYC — Tier 1", "category": "KYC — Auto", "icon": "⚡", "program": "Umbrella One (Auto KYC)", "subcategory": "transaction-ident", "description": "Identification matched against two data sources. Tier 1 countries (~AT/DE/FR/IT/ES/NL/etc.).", "unit": "transaction", "list_price": 2.25, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-AUTO-2P2-T2", "name": "2+2 KYC — Tier 2", "category": "KYC — Auto", "icon": "⚡", "program": "Umbrella One (Auto KYC)", "subcategory": "transaction-ident", "description": "Same as 2+2 Tier 1 but for higher-cost data jurisdictions (ID/SG/PH/HK/RO/AE).", "unit": "transaction", "list_price": 3.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-AUTO-1P1", "name": "1+1 KYC", "category": "KYC — Auto", "icon": "⚡", "program": "Umbrella One (Auto KYC)", "subcategory": "transaction-ident", "description": "Single-source identity match. Volume-priced floor.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "rebased from €1.50 → €1 per A3", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-AUTO-PHONEID", "name": "Phone ID", "category": "KYC — Auto", "icon": "⚡", "program": "Umbrella One (Auto KYC)", "subcategory": "transaction-ident", "description": "Identity check via mobile network operator data.", "unit": "transaction", "list_price": 0.38, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "KYC-FALLBACK-BANKID", "name": "Fallback Bank Identification", "category": "KYC — Auto", "icon": "⚡", "program": "Umbrella One (Auto KYC)", "subcategory": "transaction-fallback", "description": "Bank-ID fallback when eKYC fails.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 20, "surface": "general"}, {"id": "KYC-FALLBACK-POR", "name": "Fallback Proof of Residence", "category": "KYC — Auto", "icon": "⚡", "program": "Umbrella One (Auto KYC)", "subcategory": "transaction-fallback", "description": "Address verification via OCR of utility bills or equivalent documents.", "unit": "transaction", "list_price": 1.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 20, "surface": "general"}, {"id": "EID-UMBRELLA", "name": "Umbrella eID", "category": "eID", "icon": "🔑", "program": "Umbrella eID", "subcategory": "transaction-ident", "description": "Reusable Persona-platform eID.", "unit": "transaction", "list_price": 3.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "Persona", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "EID-IDPROOF", "name": "Umbrella eID — Identity Proof", "category": "eID", "icon": "🔑", "program": "Umbrella eID", "subcategory": "transaction-ident", "description": "Identity proof via Persona app, no QES.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "Persona", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "EID-AUTH", "name": "Umbrella Authentication / Entitlement", "category": "eID", "icon": "🔑", "program": "Umbrella eID", "subcategory": "transaction-custom", "description": "Custom authentication / entitlement flow.", "unit": "transaction", "list_price": "custom", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "Persona", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "EID-GOV-IDA", "name": "Government eID — ID Austria / Handysignatur (Direct)", "category": "eID", "icon": "🔑", "program": "Umbrella eID", "subcategory": "transaction-ident", "description": "Direct ID Austria / Handysignatur integration. Alternative routes via NOB / ESAW are cheaper — see Gov eID + QES bundle in QES program.", "unit": "transaction", "list_price": 2.5, "pass_through_cost": null, "default_margin_pct": null, "route": "Direct", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "See QES-GOV-IDA-NOB / QES-GOV-IDA-ESAW for bundled-route pricing.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "TB-DATA-CAPTURE", "name": "Data Capture (MRZ reader)", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-tool", "description": "Quick MRZ reader for data capture.", "unit": "transaction", "list_price": 0.13, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "TB-DOC-OCR", "name": "Document OCR", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-tool", "description": "Image-to-text conversion only (no verification).", "unit": "transaction", "list_price": 0.25, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "TB-DOC-SCANNER", "name": "Document Scanner", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-tool", "description": "Reads both sides of an ID, no document verification.", "unit": "transaction", "list_price": 0.55, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "TB-PAYCARD-OCR", "name": "Payment Card OCR", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-tool", "description": "Unobfuscated payment card OCR result.", "unit": "transaction", "list_price": 0.2, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "TB-FACEAUTH", "name": "Facial Authentication", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-auth", "description": "Annual subscription, unlimited authentications including passive liveness.", "unit": "year", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps+base", "default_share_pct": 100, "surface": "general"}, {"id": "TB-DOCFOR-PERMIT-AUTH-DE", "name": "Document interpret — business permit (authoritative DE)", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-doc", "description": "Smart interpretation of authoritative DE business permits (forensic/structural).", "unit": "transaction", "list_price": 0.56, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Decision #11 — included in v1 grid.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "aletheia"}, {"id": "TB-DOCFOR-PERMIT-LEAN", "name": "Document interpret — business permit OCR (lean)", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-doc", "description": "Lean interpret of OCR'd business permits.", "unit": "transaction", "list_price": 0.18, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "from Namirial AUTO KYB sheet", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "aletheia"}, {"id": "TB-DOCFOR-PERMIT-SMART", "name": "Document interpret — business permit OCR (smart)", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-doc", "description": "Smart interpret of OCR'd business permits.", "unit": "transaction", "list_price": 0.56, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "aletheia"}, {"id": "TB-DOCFOR-PERMIT-AT-GISA", "name": "Document interpret — business permit GISA AT", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-doc", "description": "Austrian GISA business permit interpretation.", "unit": "transaction", "list_price": 0.33, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "aletheia"}, {"id": "TB-FORENSIC-OCR", "name": "Forensic OCR", "category": "Toolbox", "icon": "🧰", "program": "Umbrella Toolbox", "subcategory": "transaction-doc", "description": "Forensic-grade document OCR.", "unit": "transaction", "list_price": 0.22, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "min €1k pcm; Decision #11 — included in v1 grid.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "aletheia"}, {"id": "AML-SANCTION-PEP", "name": "Sanction + PEP screening", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "transaction-aml", "description": "Combined sanction list + PEP screening per check.", "unit": "transaction", "list_price": 0.24, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD", "status": "active", "note": "Decision #5 — base SKU; canonical price across Umbrella + Namirial + Hadil.", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "AML-AM-SURCHARGE", "name": "Adverse Media surcharge", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "transaction-aml", "description": "Additive surcharge to AML-SANCTION-PEP for adverse media coverage.", "unit": "transaction", "list_price": 0.04, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD", "status": "active", "note": "Decision #5 — replaces former €0.28 bundled SKU. Sold as base + surcharge.", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "AML-RISK-SURCHARGE", "name": "Risk Data surcharge (LE / insolvency / fines)", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "transaction-aml", "description": "Additive surcharge for law enforcement / insolvency / fines / wider risk data.", "unit": "transaction", "list_price": 0.07, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD", "status": "active", "note": "Net surcharge: €0.35 full bundle minus €0.28 base+AM = €0.07.", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "AML-MONITORING", "name": "AML Monitoring (sanction + PEP, annual)", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "annual-aml", "description": "Annual subscription per monitored record (sanction + PEP), auto-notification on hit changes. Priced as 2× per-check screening rate.", "unit": "year", "list_price": 0.48, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD", "status": "active", "note": "2× AML-SANCTION-PEP rate. Pair with AML-MONITORING-AM-SURCHARGE for adverse media monitoring.", "block": "variable", "volume_basis": "apps+base", "default_share_pct": 100, "surface": "general"}, {"id": "AML-MONITORING-AM-SURCHARGE", "name": "AML Monitoring — Adverse Media surcharge (annual)", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "annual-aml", "description": "Additive annual surcharge per monitored record for adverse media coverage.", "unit": "year", "list_price": 0.08, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "AMLD", "status": "active", "note": "Pair with AML-MONITORING. Combined sanction+PEP+AM monitoring = €0.56 pa per record.", "block": "variable", "volume_basis": "apps+base", "default_share_pct": 100, "surface": "general"}, {"id": "AML-LIST-MGMT", "name": "AML list management", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "transaction-aml", "description": "Handling of hits as false/true positives via API.", "unit": "transaction", "list_price": 0.1, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "AML-COMPANY", "name": "AML on company (KYB)", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "transaction-aml", "description": "Sanction/PEP+AM on the company being identified.", "unit": "transaction", "list_price": 0.28, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "AML-INDIVIDUALS", "name": "AML on individuals (KYB)", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "transaction-aml", "description": "Sanction/PEP+AM on individuals behind a KYB case.", "unit": "transaction", "list_price": 0.28, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "AML-SETUP-NONREG", "name": "AML Setup — non-regulated entity", "category": "AML", "icon": "🚨", "program": "Umbrella AML", "subcategory": "project-aml", "description": "One-time AML configuration for non-regulated customers.", "unit": "one-time", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "ADDR-VAL", "name": "Address Validation", "category": "Address", "icon": "🏠", "program": "Umbrella Address", "subcategory": "transaction-address", "description": "Validates address existence, includes normalization.", "unit": "transaction", "list_price": 0.1, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ADDR-VERIFY", "name": "Address Verification (country-tiered)", "category": "Address", "icon": "🏠", "program": "Umbrella Address", "subcategory": "transaction-address", "description": "Authoritative-source verification that a person lives at an address. 9 country tiers €0.40 (AT/DE) → €5 (RO).", "unit": "transaction", "list_price": "tier", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Tier table: 0=€0.40 (AT/DE), 1=€0.80, 2=€1, 3=€1.50, 4=€1.75, 5=€2, 6=€2.25, 7=€4, 8=€5. AT/DE multisource +€0.50; AT ZMR €4 / DE Meldebestätigung €14 (no volume discount).", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ADDR-UTILBILL", "name": "Utility bill verification (POR)", "category": "Address", "icon": "🏠", "program": "Umbrella Address", "subcategory": "transaction-address", "description": "Address verification via OCR of eligible utility documents.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "PHONE-SMS", "name": "SMS verification", "category": "Phone", "icon": "📱", "program": "Umbrella Phone", "subcategory": "transaction-phone", "description": "Per-message SMS OTP verification. Country-priced (240-row table).", "unit": "transaction", "list_price": "country", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "See country list SMS sheet in source.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "PHONE-RISK", "name": "Phone Risk profile", "category": "Phone", "icon": "📱", "program": "Umbrella Phone", "subcategory": "transaction-phone", "description": "MNO-sourced behavioural / fraud risk profile (no identity bundle).", "unit": "transaction", "list_price": 0.08, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "PHONE-RISK-ID", "name": "Phone Risk + Identity surcharge", "category": "Phone", "icon": "📱", "program": "Umbrella Phone", "subcategory": "transaction-phone", "description": "Risk profile bundled with identity surcharge.", "unit": "transaction", "list_price": 0.25, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "PHONE-MID-DISC", "name": "Mobile Ident Discovery", "category": "Phone", "icon": "📱", "program": "Umbrella Phone", "subcategory": "transaction-phone", "description": "Retrieve identity data (name, DOB, address, nationality) from MNOs.", "unit": "transaction", "list_price": 0.375, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "OB-AIS-ID", "name": "AIS Identity check", "category": "Open Banking", "icon": "🏦", "program": "Umbrella Open Banking", "subcategory": "transaction-ob", "description": "Identity verification via open banking.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "OB-VOP", "name": "VOP / Account Ownership", "category": "Open Banking", "icon": "🏦", "program": "Umbrella Open Banking", "subcategory": "transaction-ob", "description": "Verification of Payee — verify account holder matches IBAN. EU regulation mandate (Oct 2025).", "unit": "transaction", "list_price": 0.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "EU VOP regulation", "status": "active", "note": "Decision #4 — renamed from AIS IBAN verification, rebased €1 → €0.50.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "OB-AIS-TX", "name": "AIS Transaction raw data", "category": "Open Banking", "icon": "🏦", "program": "Umbrella Open Banking", "subcategory": "transaction-ob", "description": "Detailed transaction list from a PSU; minimum 90 days.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "OB-CHALLENGE", "name": "Challenge deposit (AIS)", "category": "Open Banking", "icon": "🏦", "program": "Umbrella Open Banking", "subcategory": "transaction-ob", "description": "Penny drop including account holder matching, AIS-only.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "OB-CHALLENGE-PLUS", "name": "Challenge deposit+ (AIS+PIS)", "category": "Open Banking", "icon": "🏦", "program": "Umbrella Open Banking", "subcategory": "transaction-ob", "description": "Penny drop + holder match using both AIS and PIS rails.", "unit": "transaction", "list_price": 1.25, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "OB-PENNYDROP", "name": "Penny Drop (basic)", "category": "Open Banking", "icon": "🏦", "program": "Umbrella Open Banking", "subcategory": "transaction-ob", "description": "Standalone penny drop without account-holder name match.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "general"}, {"id": "STO-LTA-20Y", "name": "LTA storage (20-year)", "category": "Storage", "icon": "💾", "program": "Umbrella Storage", "subcategory": "transaction-storage", "description": "Long-term archive storage, 20-year option.", "unit": "transaction", "list_price": 1.2, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "STO-DATA-SIGN", "name": "AO record signing", "category": "Storage", "icon": "💾", "program": "Umbrella Storage", "subcategory": "transaction-storage", "description": "Per-record data signing for AO output.", "unit": "transaction", "list_price": 0.45, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "STO-DATA", "name": "Operational data storage", "category": "Storage", "icon": "💾", "program": "Umbrella Storage", "subcategory": "transaction-storage", "description": "Regular operational storage per record.", "unit": "transaction", "list_price": 0.007, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-REG-STANDARD", "name": "Standard register query (DACH)", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Single trade register lookup for DACH jurisdictions (AT, DE, CH). Volume-tiered: €1.50 list, drops via revenue-tier discounts to €1.00 floor at the top tier.", "unit": "transaction", "list_price": 1.5, "pass_through_cost": 1.0, "default_margin_pct": 50, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Phase 2 interview — replaces the GD-TRADE-REGISTER placeholder. Provider routing hidden from customer.", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-REG-INTL", "name": "International register query — quote per country", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Non-DACH / solo entrepreneur / wholesale ROW register lookups. Cost varies too widely by jurisdiction; sales scopes per country. Reference cost basis: €9 wholesale (Namirial), retail typically €12–€18.", "unit": "transaction", "list_price": "quote per country", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Phase 2 interview — single 'quote on request' line; not in calculator default.", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-DOC-PURCHASE", "name": "Trade register document purchase", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Surcharge for purchasing official documents from a trade register. Government fees may apply on top.", "unit": "transaction", "list_price": "country", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-MONITORING", "name": "Trade register monitoring", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "annual-gd", "description": "Annual monitoring of trade register announcements/updates.", "unit": "transaction", "list_price": "country", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-BUREAU-PROFILE", "name": "Bureau Profile (basic + financials)", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Basic company dataset including basic financials. No ownership data.", "unit": "transaction", "list_price": 6.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-BUREAU-OWNERSHIP", "name": "Bureau Ownership / UBO structure", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Ownership and UBO structure dataset. See UBO Discovery / Verification SKUs for the full chain.", "unit": "transaction", "list_price": 10.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-BUREAU-COMPLIANCE", "name": "Bureau Compliance set", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Mini-company set with financial and risk data.", "unit": "transaction", "list_price": 20.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-BIZADDR", "name": "Business address verification (rooftop)", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "transaction-gd", "description": "Rooftop-level electronic verification of business address.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "GD-TRMONITOR", "name": "Trade Register notification monitoring", "category": "Global Data / Bureau", "icon": "🌍", "program": "Umbrella Global Data", "subcategory": "annual-gd", "description": "Per-annum subscription to all notifications and company updates.", "unit": "year", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "UBO-DISCOVERY-DIRECT", "name": "UBO Discovery — register-direct (per UBO)", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-ubo", "description": "Direct register lookup for UBO discovery. Cheapest where the jurisdiction's register supports direct UBO query.", "unit": "transaction", "list_price": 0.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "New canonical SKU. Step 1 of UBO chain. Pair with UBO-VERIFICATION.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "account-origination"}, {"id": "UBO-DISCOVERY-PARTNER", "name": "UBO Discovery — partner-route (per UBO)", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-ubo", "description": "Partner-route UBO discovery for jurisdictions where direct register isn't viable.", "unit": "transaction", "list_price": 9.0, "pass_through_cost": 6.93, "default_margin_pct": 30, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "New canonical SKU. Step 1 of UBO chain (alternative). Pair with UBO-VERIFICATION.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "account-origination"}, {"id": "UBO-VERIFICATION", "name": "UBO Verification (per UBO)", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-ubo", "description": "Verification of a discovered UBO — primarily document verification (KYC document or chain).", "unit": "transaction", "list_price": 1.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "New canonical SKU. Step 2 of UBO chain. Combinable with KYC-SELF-DOC for full IDV when needed.", "block": "variable", "volume_basis": "apps", "default_share_pct": 30, "surface": "account-origination"}, {"id": "AO-TX", "name": "Account Origination — transaction", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-ao", "description": "Per-completed AO workflow; excludes per-component data/ID fees.", "unit": "transaction", "list_price": 1.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "account-origination"}, {"id": "AO-TX-UNFIN", "name": "Account Origination — unfinished", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-ao", "description": "Per-AO-attempt that is aborted or expires before completion.", "unit": "transaction", "list_price": 0.25, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "account-origination"}, {"id": "AO-DOC-VERIFY", "name": "Business document verification", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-ao", "description": "OCR + verification of a standard business document.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "account-origination"}, {"id": "AKYB-TEMPLATE", "name": "Auto KYB — extra template", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "project-akyb", "description": "Additional KYB template beyond the one included in setup.", "unit": "one-time", "list_price": 1000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "WORKFLOW-LIGHT", "name": "Workflow customization — Light", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "project-workflow", "description": "Standard happy-path tweaks: minor risk-rule adjustments, simple field mapping, basic decisioning. Replaces legacy AKYB-RISKMATRIX (€2k) + AKYB-WORKSHOP (€5k) micro-SKUs.", "unit": "one-time", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "WORKFLOW-STANDARD", "name": "Workflow customization — Standard", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "project-workflow", "description": "Custom risk matrix + decisioning rules + 1–2 case-routing branches. Most common Euronet/Bank99-scale customization.", "unit": "one-time", "list_price": 15000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Chief scope multiplier per AO interview.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "WORKFLOW-HEAVY", "name": "Workflow customization — Heavy", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "project-workflow", "description": "Full custom workflow, multi-step approval logic, custom data-binding, complex branching. Anything beyond is T&M.", "unit": "one-time", "list_price": 30000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "AKYB-MERCHANT-PORTAL", "name": "Auto KYB — hosted merchant portal", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "Hosted merchant onboarding portal.", "unit": "setup", "list_price": 8000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "AKYB-REMINDER", "name": "Auto KYB — reminder infra", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "project-akyb", "description": "Automated reminder infrastructure for in-flight cases.", "unit": "one-time", "list_price": 750, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "AKYB-CUSTOMEMAIL", "name": "Auto KYB — custom email domain", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "project-akyb", "description": "Custom email domain configuration for merchant comms.", "unit": "one-time", "list_price": 500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "OSINT-SETUP", "name": "OSINT Risk search — setup", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "OSINT risk search platform setup.", "unit": "setup", "list_price": 17500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "OSINT-PERCASE", "name": "OSINT Risk search — per case", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-akyb", "description": "Per-case OSINT search; min monthly commitment €1k.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "account-origination"}, {"id": "RISK-SYNTH-IDENTITY", "name": "Onboarding risk / synthetic identity", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-risk", "description": "Synthetic-identity / behavioural risk score on onboarding.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "account-origination"}, {"id": "RISK-MATRIX", "name": "Risk Matrix application", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "transaction-risk", "description": "Per-application of configured risk matrix.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "account-origination"}, {"id": "BO-GUI", "name": "Backoffice — GUI Setup", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Core GUI switch-on, base styling, navigation shell. Required as the first module in any Backoffice deployment.", "unit": "one-time", "list_price": 10000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Required base module.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-IAM", "name": "Backoffice — IAM / User management", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "User management, roles, permissions screens.", "unit": "one-time", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-DASHBOARD", "name": "Backoffice — Dashboard", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Top-level KPI / status dashboard.", "unit": "one-time", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-ADMIN", "name": "Backoffice — Admin screen", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Admin / configuration surface.", "unit": "one-time", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-AUDITTRAIL", "name": "Backoffice — Audit trail", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Full audit trail with searchable history.", "unit": "one-time", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-REPORTING", "name": "Backoffice — Reporting screens", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Reporting screens for compliance / regulator reads (full version; minimal version available on request at €3.5k).", "unit": "one-time", "list_price": 10000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-RISKMATRIX", "name": "Backoffice — Risk matrix UI", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Operator-editable risk matrix with rule preview.", "unit": "one-time", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-CASEEDIT", "name": "Backoffice — Case edit screens", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Case editing surface — the screen analysts live in.", "unit": "one-time", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-CUSTLIST", "name": "Backoffice — Customer / transaction list", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Searchable customer + transaction lists.", "unit": "one-time", "list_price": 3000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-OPTASKLIST", "name": "Backoffice — Operator task list", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Per-operator workqueue / task list.", "unit": "one-time", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-COMPLIANCECASE", "name": "Backoffice — Capture compliance case", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Compliance case capture surface for SAR / STR-style flows.", "unit": "one-time", "list_price": 4000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-AISUMMARY", "name": "Backoffice — AI compliance case summary", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "LLM-summarized compliance case rendering. Differentiator module.", "unit": "one-time", "list_price": 5500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-MERCHANTEXCH", "name": "Backoffice — Secure merchant exchange", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Encrypted document/data exchange channel with the merchant.", "unit": "one-time", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-REIDENT", "name": "Backoffice — Re-ident & monitoring module", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Periodic re-identification + ongoing monitoring scheduling surface.", "unit": "one-time", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-BULKUPLOAD", "name": "Backoffice — Bulk upload", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Bulk CSV/Excel upload for migration or batch onboarding.", "unit": "one-time", "list_price": 1500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-SFCONNECTOR", "name": "Backoffice — Salesforce Connector", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-module", "description": "Salesforce integration. T&M pricing per scope.", "unit": "one-time", "list_price": "T&M", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "BO-MAINT", "name": "Backoffice — Annual maintenance", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "backoffice-recurring", "description": "Annual maintenance fee = 20% of total selected Backoffice setup, capped at €20,000 pa. Example: 'Standard' bundle (GUI+IAM+Dashboard+Admin+Audit = €21.5k) → €4,300 pa.", "unit": "year", "list_price": "20% of setup, cap €20k", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "DATAOPT-AT", "name": "Data Optimization Connector — AT", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "AT data optimization connector — €2,500 setup + €900/mo + €0.25/tx.", "unit": "setup", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "DATAOPT-CH", "name": "Data Optimization Connector — CH", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "CH connector — €2,500 setup + €250/mo + €0.75/tx.", "unit": "setup", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "DATAOPT-UK", "name": "Data Optimization Connector — UK", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "UK connector — €1,000 setup + €0/mo + €0.20/tx.", "unit": "setup", "list_price": 1000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "DATAOPT-FR", "name": "Data Optimization Connector — FR", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "FR connector — €2,500 setup + €250/mo + €0.80/tx.", "unit": "setup", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "DATAOPT-IT", "name": "Data Optimization Connector — IT", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "IT connector — €2,500 setup + €250/mo + €0.50/tx.", "unit": "setup", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "DATAOPT-ES", "name": "Data Optimization Connector — ES", "category": "KYB & AO", "icon": "🏢", "program": "Umbrella Corporate (KYB / AO)", "subcategory": "platform-setup", "description": "ES connector — €2,500 setup + €100/mo + €0.75/tx.", "unit": "setup", "list_price": 2500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "account-origination"}, {"id": "ESIGN-ENVELOPE", "name": "Envelope (eSigning)", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-esign", "description": "Per-envelope fee; can host multiple signatories.", "unit": "transaction", "list_price": 1.16, "pass_through_cost": 0.81, "default_margin_pct": 43, "route": "eSAW", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "List rebased to current eSAW route plus a 10% buffer to absorb volume-tier discount erosion.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "ESIGN-PADES", "name": "PadES PDF Signing (Interface)", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-esign", "description": "AES, QES, or SES placement on a PDF document via interface.", "unit": "transaction", "list_price": 1.2, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "ESIGN-HASH", "name": "Hash Signature (API)", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-esign", "description": "API-only hash signature; simple or company seal.", "unit": "transaction", "list_price": 0.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "ESIGN-PDFAPI", "name": "PDF Signing (API)", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-esign", "description": "API-driven PDF signature; simple or company seal.", "unit": "transaction", "list_price": 0.7, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "SIG-SES", "name": "Simple Electronic Signature (SES) surcharge", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-sigsur", "description": "Simple electronic signature on any PDF, file or data record.", "unit": "transaction", "list_price": 0.3, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "SIG-AES-SPEED", "name": "AES Speed surcharge (SMS + company seal)", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-sigsur", "description": "Advanced electronic signature using SMS + company seal.", "unit": "transaction", "list_price": 0.5, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "SIG-AES-PERSONAL", "name": "AES Personalized surcharge", "category": "eSign", "icon": "✍", "program": "Umbrella eSign", "subcategory": "transaction-sigsur", "description": "Personalized disposable AES with light identity verification.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-SMART-IDENT", "name": "Smart QES Ident (premium bundle)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Premium ident bundle with QES-grade strength and many in-flow services included; signature optional. Use when richest in-flow capability is required.", "unit": "transaction", "list_price": 7.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "premium", "note": "Decision #1 — kept at €7 per A1. Smart QES is the richer bundle, not the standard QES.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-STANDARD-IDENT-NOB", "name": "Standard QES Ident (NOB route, eIDAS 2.0)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Volume-priced QES-grade ident via the Namirial Onboarding Block (NOB) route.", "unit": "transaction", "list_price": 3.92, "pass_through_cost": 2.74, "default_margin_pct": 43, "route": "NOB", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "Decision #1, A1, A6, Decision #13. Components: Facematch+Operator + QES surcharge. List includes 10% buffer above cost basis.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-STANDARD-IDENT-NOB-2027", "name": "Standard QES Ident (NOB route, transitional → 08/2027)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Same product, transitional eIDAS pricing valid until 08/2027.", "unit": "transaction", "list_price": 2.6, "pass_through_cost": 1.82, "default_margin_pct": 43, "route": "NOB", "sla_dependency": "", "regulatory_window": "08/2027 transitional", "compliance": "", "status": "active", "note": "Decision #13 — both windows shown side-by-side in v1 grid.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-STANDARD-IDENT-ESAW", "name": "Standard QES Ident (eSAW route, eIDAS 2.0)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Standard QES-grade ident via the A-Trust eSAW route. Use when in-flow is signing/workflow-heavy.", "unit": "transaction", "list_price": 4.59, "pass_through_cost": 3.21, "default_margin_pct": 43, "route": "eSAW", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-STANDARD-IDENT-ESAW-2027", "name": "Standard QES Ident (eSAW route, transitional → 08/2027)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Same product, transitional eIDAS pricing valid until 08/2027.", "unit": "transaction", "list_price": 3.27, "pass_through_cost": 2.28, "default_margin_pct": 43, "route": "eSAW", "sla_dependency": "", "regulatory_window": "08/2027 transitional", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-SIGNATURE-SURCHARGE", "name": "QES Signature surcharge", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-sigsur", "description": "Additive QES surcharge applied on top of an envelope or already-identified ident step. Volume-priced.", "unit": "transaction", "list_price": 0.88, "pass_through_cost": 0.62, "default_margin_pct": 43, "route": "NOB", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "A6 — applied when re-ident isn't needed (existing identified user) or when paired with non-QES ident.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-GOV-IDA-NOB", "name": "Gov eID + QES — ID Austria (NOB route)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Bundled ID Austria ident + QES via the NOB route. Cheapest where the user already has ID Austria.", "unit": "transaction", "list_price": 0.43, "pass_through_cost": 0.3, "default_margin_pct": 43, "route": "NOB", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "Decision #1 — gov eID + QES bundle SKU. Replaces standalone €4 'QES with government eID'.", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-GOV-IDA-ESAW", "name": "Gov eID + QES — ID Austria (eSAW route)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Bundled ID Austria ident + QES via the eSAW route.", "unit": "transaction", "list_price": 0.97, "pass_through_cost": 0.68, "default_margin_pct": 43, "route": "eSAW", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-AT-NFC", "name": "AT NFC-QES", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Austria-specific NFC-based QES variant.", "unit": "transaction", "list_price": 3.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-RO-NID", "name": "RO national ID QES", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Romania-specific national-ID-based QES.", "unit": "transaction", "list_price": 3.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-SMARTEID", "name": "Smart eID (reusable QES)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-qes", "description": "Reusable Smart eID for repeated identification or signing.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "eIDAS 2.0", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-DECLINED", "name": "QES declined outcome", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-decline", "description": "Charged when a QES flow is identified but declined for a regulatory reason.", "unit": "transaction", "list_price": 6.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 5, "surface": "general"}, {"id": "QES-FAILED", "name": "Failed QES", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-decline", "description": "Charged for unsuccessful QES attempts.", "unit": "transaction", "list_price": 2.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 5, "surface": "general"}, {"id": "QES-VAL-AUTO", "name": "QES — automated validation", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-addon", "description": "Validate any QES signature via API.", "unit": "transaction", "list_price": 0.1, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "QES-DE-CHALLENGE", "name": "QES — DE challenge deposit surcharge", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "transaction-addon", "description": "AMLD5 DE-specific challenge deposit surcharge for QES flows.", "unit": "transaction", "list_price": 1.0, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 50, "surface": "general"}, {"id": "NOB-SETUP", "name": "NOB platform setup (eIDAS 2.0)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-setup", "description": "Namirial Onboarding Block setup fee.", "unit": "setup", "list_price": 4000, "pass_through_cost": null, "default_margin_pct": null, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Required for any NOB-routed QES SKU.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "NOB-ANNUAL", "name": "NOB annual fee", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-recurring", "description": "Annual platform fee for NOB.", "unit": "year", "list_price": 6000, "pass_through_cost": null, "default_margin_pct": null, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "IDHUB-SETUP", "name": "ID HUB setup", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-setup", "description": "ID HUB enables cheap government eID routing via NOB.", "unit": "setup", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "Required for QES-GOV-IDA-NOB and other gov-eID NOB routes.", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "IDHUB-ANNUAL", "name": "ID HUB annual fee", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-recurring", "description": "Annual fee for ID HUB.", "unit": "year", "list_price": 2040, "pass_through_cost": null, "default_margin_pct": null, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "ETSI-SETUP", "name": "ETSI ID Face Match setup", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-setup", "description": "ETSI-aligned facematch setup (NOB route).", "unit": "setup", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "NOB", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "ESAW-SETUP", "name": "eSAW platform setup (eIDAS 2.0)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-setup", "description": "A-Trust ESAW setup fee.", "unit": "setup", "list_price": 2750, "pass_through_cost": null, "default_margin_pct": null, "route": "eSAW", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "ESAW-ATRUST-FLAT", "name": "eSAW — A-Trust flat (annual)", "category": "QES", "icon": "🔏", "program": "Umbrella QES", "subcategory": "platform-recurring", "description": "A-Trust annual flat fee bundled into the eSAW route.", "unit": "year", "list_price": 1100, "pass_through_cost": null, "default_margin_pct": null, "route": "eSAW", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "active", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-EID-EE", "name": "Government eID — Estonian ID Card", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-eid", "description": "Roadmap; not currently delivered. Was listed at €0.60.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-EID-LT", "name": "Government eID — Lithuanian Mobile ID", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-eid", "description": "Roadmap; not currently delivered. Was listed at €0.65.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-EID-IT-SPID", "name": "Government eID — SPID (IT)", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-eid", "description": "Roadmap; not currently delivered. Was listed at €2.25.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-EID-SMARTID", "name": "Government eID — Smart-ID (EE/LV/LT)", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-eid", "description": "Roadmap; not currently delivered. Was listed at €0.65.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-EID-BE-ITSME", "name": "Government eID — Belgian itsme", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-eid", "description": "Roadmap; not currently delivered. Was listed at €0.60.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-AES-BIO", "name": "AES Biometric (signature pad)", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-sig", "description": "Roadmap; requires signature pad. Was listed at €1.75.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-PHONE-SILENT", "name": "Silent Authentication", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-phone", "description": "Roadmap; planned alternative to SMS verification.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-OB-PAYACCEPT", "name": "Open Banking — payment acceptance", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-ob", "description": "Roadmap.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-CREDISAFE", "name": "Credisafe", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-gd", "description": "Roadmap.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "DROPPED-KSV", "name": "KSV — company profile / credit report", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "dropped", "description": "Dropped from grid (Phase 2 interview). Bureau Profile/Ownership/Compliance bundles cover the deep-data surface; KSV-specific re-add only if a customer explicitly asks.", "unit": "transaction", "list_price": "dropped", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-TPREG", "name": "Transparency Register (EU)", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-gd", "description": "Roadmap on the Umbrella surface; built on Namirial side at €0.50 (Transparenzregister DE).", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "ROADMAP-EID-COMMERCIAL", "name": "Commercial eID", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "roadmap-eid", "description": "Roadmap.", "unit": "transaction", "list_price": "tbd", "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "parked", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "general"}, {"id": "PARKED-DOCFOR-LLM-SETUP", "name": "Doc forensics — cloud LLM setup", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "parked-docfor", "description": "Provisional separate-package price; editable in the pricing cockpit.", "unit": "setup", "list_price": 5000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "provisional", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "aletheia"}, {"id": "PARKED-DOCFOR-GUARDRAILS", "name": "Doc forensics — guardrails setup", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "parked-docfor", "description": "Provisional separate-package price; editable in the pricing cockpit.", "unit": "setup", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "provisional", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "aletheia"}, {"id": "PARKED-DOCFOR-DECISION", "name": "Doc forensics — decisioning setup", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "parked-docfor", "description": "Provisional separate-package price; editable in the pricing cockpit.", "unit": "setup", "list_price": 2000, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "provisional", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "aletheia"}, {"id": "PARKED-DOCFOR-MCP", "name": "Doc forensics — MCP setup", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "parked-docfor", "description": "Provisional separate-package price; editable in the pricing cockpit.", "unit": "setup", "list_price": 500, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "provisional", "note": "", "block": "fixed", "volume_basis": "fixed", "default_share_pct": 100, "surface": "aletheia"}, {"id": "PARKED-DOCFOR-POA", "name": "Doc forensics — POA interpret", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "parked-docfor", "description": "Provisional separate-package price; editable in the pricing cockpit.", "unit": "transaction", "list_price": 0.45, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "provisional", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "aletheia"}, {"id": "PARKED-DOCFOR-UNSTRUCT", "name": "Doc forensics — unstructured general", "category": "Roadmap", "icon": "🚧", "program": "Roadmap (not in v1 grid)", "subcategory": "parked-docfor", "description": "Provisional separate-package price; editable in the pricing cockpit.", "unit": "transaction", "list_price": 0.45, "pass_through_cost": null, "default_margin_pct": null, "route": "", "sla_dependency": "", "regulatory_window": "", "compliance": "", "status": "provisional", "note": "", "block": "variable", "volume_basis": "apps", "default_share_pct": 100, "surface": "aletheia"}], "category_order": ["KYC — Auto", "KYC — Self", "AML", "KYB & AO", "QES", "eSign", "eID", "Open Banking", "Address", "Phone", "Global Data / Bureau", "Storage", "Toolbox", "Platform", "Packages", "SLA", "Project services", "Roadmap"], "bundles": [{"name": "Bank starter", "description": "Bank-scale KYC + KYB + AML + eSign with QES via NOB. ~60k apps/year, 200k existing customers.", "default_annual_apps": 60000, "default_existing_base": 200000, "items": [["PLAT-CANOPY-FI", 100], ["PLAT-CORP-AOSETUP", 100], ["PLAT-CORP-KYBSETUP", 100], ["WORKFLOW-STANDARD", 100], ["KYC-AUTO-1P1", 100], ["AML-SANCTION-PEP", 100], ["AML-AM-SURCHARGE", 100], ["AML-MONITORING", 100], ["AML-MONITORING-AM-SURCHARGE", 100], ["OB-VOP", 30], ["GD-REG-STANDARD", 20], ["UBO-DISCOVERY-DIRECT", 30], ["UBO-VERIFICATION", 30], ["ESIGN-ENVELOPE", 30], ["QES-STANDARD-IDENT-NOB", 15], ["NOB-SETUP", 100], ["NOB-ANNUAL", 100], ["IDHUB-SETUP", 100], ["IDHUB-ANNUAL", 100], ["ETSI-SETUP", 100], ["ESAW-SETUP", 100], ["ESAW-ATRUST-FLAT", 100]]}, {"name": "Fintech KYC+KYB+QES (premium)", "description": "Premium ident with Smart QES, full AML stack, KYB programme. ~36k apps/year.", "default_annual_apps": 36000, "default_existing_base": 50000, "items": [["PLAT-CANOPY-FI", 100], ["PLAT-CORP-AOSETUP", 100], ["PLAT-CORP-KYBSETUP", 100], ["WORKFLOW-LIGHT", 100], ["KYC-AUTO-2P2-T1", 100], ["AML-SANCTION-PEP", 100], ["AML-AM-SURCHARGE", 100], ["AML-MONITORING", 100], ["AML-MONITORING-AM-SURCHARGE", 100], ["GD-BUREAU-PROFILE", 20], ["GD-BUREAU-OWNERSHIP", 20], ["UBO-DISCOVERY-DIRECT", 30], ["UBO-VERIFICATION", 30], ["ESIGN-ENVELOPE", 30], ["QES-SMART-IDENT", 20]]}, {"name": "Solo entrepreneur onboarding", "description": "Light AO + minimal KYB chain for sole-trader / micro-merchant flows. ~12k apps/year.", "default_annual_apps": 12000, "default_existing_base": 20000, "items": [["PLAT-CANOPY-NONFI", 100], ["PLAT-CORP-AOSETUP", 100], ["PLAT-CORP-KYBSETUP", 100], ["WORKFLOW-LIGHT", 100], ["KYC-AUTO-1P1", 100], ["AML-SANCTION-PEP", 100], ["AML-AM-SURCHARGE", 100], ["GD-REG-STANDARD", 50], ["AO-DOC-VERIFY", 50], ["ESIGN-ENVELOPE", 50], ["SIG-AES-SPEED", 50], ["ESAW-SETUP", 100], ["ESAW-ATRUST-FLAT", 100]]}], "suggestions": [{"label": "AML monitoring", "reason": "You have AML screening — add ongoing monitoring (annual subscription).", "if_has": ["AML-SANCTION-PEP"], "then_add": ["AML-MONITORING"]}, {"label": "AM monitoring surcharge", "reason": "You have monitoring + AM screening — extend monitoring to cover adverse media.", "if_has": ["AML-MONITORING", "AML-AM-SURCHARGE"], "then_add": ["AML-MONITORING-AM-SURCHARGE"]}, {"label": "UBO chain", "reason": "You have KYB but no UBO discovery — add the per-UBO chain.", "if_has_any_program": ["KYB & AO"], "if_missing_all": ["UBO-DISCOVERY-DIRECT", "UBO-DISCOVERY-PARTNER"], "then_add": ["UBO-DISCOVERY-DIRECT", "UBO-VERIFICATION"]}, {"label": "Trade register", "reason": "KYB usually needs at least one register lookup per applicant.", "if_has_any_program": ["KYB & AO"], "if_missing_all": ["GD-REG-STANDARD", "GD-REG-INTL"], "then_add": ["GD-REG-STANDARD"]}, {"label": "VOP / Account Ownership", "reason": "Mandatory under EU VOP regulation (Oct 2025) for any flow that pays out to an IBAN.", "if_has_any_program": ["KYB & AO", "Open Banking"], "if_missing_all": ["OB-VOP"], "then_add": ["OB-VOP"]}, {"label": "LTA storage", "reason": "KYC outputs are usually long-term-archived for compliance.", "if_has_any_program": ["KYC — Auto", "KYC — Self"], "if_missing_all": ["STO-LTA-20Y"], "then_add": ["STO-LTA-20Y"]}, {"label": "QES NOB-route alternative", "reason": "You picked Smart QES Premium (€7). Standard QES via NOB route is much cheaper if you don't need the bundle.", "if_has": ["QES-SMART-IDENT"], "if_missing_all": ["QES-STANDARD-IDENT-NOB", "QES-STANDARD-IDENT-NOB-2027"], "then_add": ["QES-STANDARD-IDENT-NOB"]}, {"label": "NOB platform setup", "reason": "Any NOB-routed QES SKU needs the Namirial NOB platform set up + annual.", "if_has": ["QES-STANDARD-IDENT-NOB", "QES-STANDARD-IDENT-NOB-2027", "QES-GOV-IDA-NOB", "QES-SIGNATURE-SURCHARGE"], "then_add": ["NOB-SETUP", "NOB-ANNUAL"]}, {"label": "ID HUB (gov eID via NOB)", "reason": "ID Austria via NOB route requires ID HUB (the bridge to Austrian gov eIDs) — setup + annual.", "if_has": ["QES-GOV-IDA-NOB"], "then_add": ["IDHUB-SETUP", "IDHUB-ANNUAL"]}, {"label": "ETSI Facematch setup", "reason": "Standard QES Ident via NOB uses the ETSI-aligned Facematch — needs its one-time setup.", "if_has": ["QES-STANDARD-IDENT-NOB", "QES-STANDARD-IDENT-NOB-2027"], "then_add": ["ETSI-SETUP"]}, {"label": "eSAW platform setup", "reason": "Any eSAW-routed envelope or QES needs the A-Trust ESAW platform setup + annual flat fee.", "if_has": ["ESIGN-ENVELOPE", "QES-STANDARD-IDENT-ESAW", "QES-STANDARD-IDENT-ESAW-2027", "QES-GOV-IDA-ESAW"], "then_add": ["ESAW-SETUP", "ESAW-ATRUST-FLAT"]}, {"label": "Persona platform setup", "reason": "You picked an Umbrella eID — needs the Persona platform.", "if_has": ["EID-UMBRELLA", "EID-IDPROOF"], "if_missing_all": ["PLAT-PERSONA-OPEN", "PLAT-PERSONA-CLOSED", "PLAT-PERSONA-CUSTOM"], "then_add": ["PLAT-PERSONA-OPEN"]}], "discount_bands": [[0, 4999, 0.0, 0.0], [5000, 10000, 0.04, 0.09], [10001, 25000, 0.09, 0.155], [25001, 50000, 0.14, 0.22], [50001, 75000, 0.18, 0.28], [75001, 100000, 0.225, 0.35], [100001, 250000, 0.25, 0.4], [250001, 500000, 0.27, 0.42], [500001, 1000000, 0.3, 0.45], [1000001, 9999999999, 0.3, 0.45]], "multiyear": {"PAYG": 0.0, "Prepaid 12mo": 0.0, "Prepaid 24mo": 0.05, "Prepaid 36mo": 0.1}}</script>
+<script>
+(function() {
+  "use strict";
+  const DATA = JSON.parse(document.getElementById("cockpit-data").textContent);
+  const SKU_BY_ID = Object.fromEntries(DATA.skus.map(s => [s.id, s]));
+  const OCCURRENCE_TYPES = ["transaction", "month", "year", "setup", "one-time", "project", "week"];
+  const API_BASE = "/pricing/api";
+
+  // ---- state ----
+  // scenario row: {id, vol, share, manual}
+  //   share = % of annual_apps basis (0–100+)
+  //   manual = true if vol was directly edited, share is ignored
+  let scenario = [];
+  let annualApps = 0;
+  let existingBase = 0;
+
+  // ---- compute ----
+  function computeRow(sku, vol) {
+    const p = sku.list_price;
+    const pt = sku.pass_through_cost;
+    const out = { monthly: 0, oneTime: 0, ptMonthly: 0, computable: false };
+    if (typeof p !== "number") return out;
+    out.computable = true;
+    const v = Number(vol) || 0;
+    switch (sku.unit) {
+      case "transaction":
+        out.monthly = p * v;
+        if (typeof pt === "number") out.ptMonthly = pt * v;
+        break;
+      case "month":
+        out.monthly = p * Math.max(v, 1);
+        break;
+      case "year":
+        out.monthly = (p / 12) * Math.max(v, 1);
+        break;
+      case "setup":
+      case "one-time":
+      case "project":
+        out.oneTime = p * Math.max(v, 1);
+        break;
+      case "week":
+        out.oneTime = p * v;
+        break;
+    }
+    return out;
+  }
+
+  function deriveVol(sku, sharePct) {
+    const basis = sku.volume_basis;
+    const share = (Number(sharePct) || 0) / 100;
+    if (basis === "fixed") return 1;
+    let total = 0;
+    if (basis === "apps") total = annualApps;
+    else if (basis === "apps+base") total = annualApps + existingBase;
+    if (sku.unit === "transaction") return Math.round(total * share / 12);
+    if (sku.unit === "year") return Math.round(total * share);
+    return 1;
+  }
+
+  function unitSuffix(unit) {
+    switch (unit) {
+      case "transaction": return "/mo";
+      case "month": return "/mo";
+      case "year": return "/yr";
+      case "setup": case "one-time": case "project": return "fix";
+      case "week": return "wk";
+      default: return "";
+    }
+  }
+
+  function eur(n, decimals = 0) {
+    if (!isFinite(n)) return "—";
+    return "€" + n.toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+
+  function fmtPrice(p, unit) {
+    if (typeof p !== "number") return String(p ?? "");
+    return "€" + p.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + unitSuffix(unit);
+  }
+
+  function lookupBand(monthly) {
+    for (const [lo, hi, payg, prep] of DATA.discount_bands) {
+      if (monthly >= lo && monthly <= hi) return { payg, prep };
+    }
+    return { payg: 0, prep: 0 };
+  }
+
+  function effectiveDiscount(term, payg, prep) {
+    if (term === "PAYG") return payg;
+    if (term === "Prepaid 12mo") return prep;
+    if (term === "Prepaid 24mo") return prep + 0.05;
+    if (term === "Prepaid 36mo") return prep + 0.10;
+    return 0;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+  }
+
+  function cssEscape(s) {
+    if (window.CSS && CSS.escape) return CSS.escape(s);
+    return String(s).replace(/[^a-zA-Z0-9_-]/g, ch => "\\" + ch);
+  }
+
+  // ---- left categories ----
+  function renderCategories(filterText = "") {
+    const root = document.getElementById("categories");
+    root.innerHTML = "";
+    const filter = filterText.trim().toLowerCase();
+    const skusByCat = {};
+    DATA.category_order.forEach(c => skusByCat[c] = []);
+    DATA.skus.forEach(s => {
+      if (s.surface !== "general") return;
+      if (!skusByCat[s.category]) skusByCat[s.category] = [];
+      const matches = !filter || (
+        s.name.toLowerCase().includes(filter) ||
+        s.id.toLowerCase().includes(filter) ||
+        (s.description && s.description.toLowerCase().includes(filter)) ||
+        (s.route && s.route.toLowerCase().includes(filter))
+      );
+      if (matches) skusByCat[s.category].push(s);
+    });
+    const order = [...DATA.category_order, ...Object.keys(skusByCat).filter(c => !DATA.category_order.includes(c))];
+    order.forEach(cat => {
+      const list = skusByCat[cat] || [];
+      if (!list.length) return;
+      const group = document.createElement("div");
+      group.className = "cat-group";
+      if (cat === "Roadmap" && !filter) group.classList.add("collapsed");
+      const header = document.createElement("div");
+      header.className = "cat-header";
+      const icon = list[0].icon || "";
+      header.innerHTML = `<span class="icon">${icon}</span><span class="label">${cat}</span><span class="count">${list.length}</span><span class="arrow">▾</span>`;
+      header.addEventListener("click", () => group.classList.toggle("collapsed"));
+      group.appendChild(header);
+      const pillsBox = document.createElement("div");
+      pillsBox.className = "pills";
+      list.forEach(s => {
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.dataset.status = s.status || "active";
+        pill.title = (s.description || "") + (s.note ? "\n\n" + s.note : "");
+        const priceTxt = (typeof s.list_price === "number") ? fmtPrice(s.list_price, s.unit) : (s.list_price || "");
+        pill.innerHTML = `<span class="name">${escapeHtml(s.name)}</span><span class="price">${escapeHtml(priceTxt)}</span>`;
+        if (s.status !== "parked") {
+          pill.addEventListener("click", () => addToScenario(s.id));
+        }
+        pillsBox.appendChild(pill);
+      });
+      group.appendChild(pillsBox);
+      root.appendChild(group);
+    });
+  }
+
+  // ---- scenario actions ----
+  function addToScenario(id, opts = {}) {
+    if (scenario.some(r => r.id === id)) {
+      flashStatus(`Already in scenario: ${SKU_BY_ID[id].name}`);
+      return;
+    }
+    const sku = SKU_BY_ID[id];
+    if (!sku) return;
+    const share = opts.share != null ? opts.share : (sku.default_share_pct ?? 100);
+    let vol;
+    if (opts.vol != null) {
+      vol = opts.vol;
+    } else if (sku.block === "fixed") {
+      vol = 1;
+    } else {
+      vol = deriveVol(sku, share);
+    }
+    const manual = opts.manual === true;
+    scenario.push({ id, vol, share, manual });
+    renderScenario();
+    renderSuggestions();
+    renderTotals();
+    saveAuto();
+  }
+
+  function removeFromScenario(id) {
+    scenario = scenario.filter(r => r.id !== id);
+    renderScenario();
+    renderSuggestions();
+    renderTotals();
+    saveAuto();
+  }
+
+  function setShare(id, share) {
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    r.share = Number(share);
+    if (!isFinite(r.share)) r.share = 0;
+    r.manual = false;
+    const sku = SKU_BY_ID[id];
+    if (sku) r.vol = deriveVol(sku, r.share);
+    updateRowBVisuals(id);
+    renderTotals();
+    saveAuto();
+  }
+
+  function setVolManual(id, vol) {
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    r.vol = Number(vol);
+    if (!isFinite(r.vol)) r.vol = 0;
+    r.manual = true;
+    updateRowBVisuals(id);
+    renderTotals();
+    saveAuto();
+  }
+
+  function setQty(id, qty) {
+    // Block A — always manual qty
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    r.vol = Math.max(Number(qty) || 0, 0);
+    r.manual = true;
+    updateRowATotal(id);
+    renderTotals();
+    saveAuto();
+  }
+
+  function resetRowToShare(id) {
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    const sku = SKU_BY_ID[id];
+    if (!sku) return;
+    r.manual = false;
+    r.vol = deriveVol(sku, r.share);
+    updateRowBVisuals(id);
+    renderTotals();
+    saveAuto();
+  }
+
+  function clearAll() {
+    if (scenario.length && !confirm("Clear all scenario lines?")) return;
+    scenario = [];
+    renderScenario();
+    renderSuggestions();
+    renderTotals();
+    saveAuto();
+  }
+
+  function applyBundle(bundle) {
+    if (typeof bundle.default_annual_apps === "number") {
+      annualApps = bundle.default_annual_apps;
+      document.getElementById("annual-apps").value = annualApps;
+    }
+    if (typeof bundle.default_existing_base === "number") {
+      existingBase = bundle.default_existing_base;
+      document.getElementById("existing-base").value = existingBase;
+    }
+    bundle.items.forEach(item => {
+      const [sku_id, share] = item;
+      const idx = scenario.findIndex(r => r.id === sku_id);
+      const sku = SKU_BY_ID[sku_id];
+      if (!sku) return;
+      const vol = sku.block === "fixed" ? 1 : deriveVol(sku, share);
+      if (idx >= 0) {
+        scenario[idx].share = share;
+        scenario[idx].vol = vol;
+        scenario[idx].manual = false;
+      } else {
+        scenario.push({ id: sku_id, share, vol, manual: false });
+      }
+    });
+    flashStatus(`Loaded bundle: ${bundle.name}`);
+    renderScenario();
+    renderSuggestions();
+    renderTotals();
+    saveAuto();
+  }
+
+  function setAnnualApps(n) {
+    annualApps = Math.max(Number(n) || 0, 0);
+    recomputeFromBasis();
+    saveAuto();
+  }
+
+  function setExistingBase(n) {
+    existingBase = Math.max(Number(n) || 0, 0);
+    recomputeFromBasis();
+    saveAuto();
+  }
+
+  function recomputeFromBasis() {
+    scenario.forEach(r => {
+      if (r.manual) return;
+      const sku = SKU_BY_ID[r.id];
+      if (!sku) return;
+      if (sku.volume_basis === "apps" || sku.volume_basis === "apps+base") {
+        r.vol = deriveVol(sku, r.share);
+        // Update vol-cell input value (without destroying it) + total cell
+        const row = document.querySelector(`.row-b[data-sku-id="${cssEscape(r.id)}"]`);
+        if (row) {
+          const volInput = row.querySelector(".vol-cell input");
+          if (volInput && document.activeElement !== volInput) {
+            volInput.value = r.vol;
+          }
+          updateRowBTotal(r.id);
+        }
+      }
+    });
+    renderTotals();
+  }
+
+  function resetSharesToDefaults() {
+    scenario.forEach(r => {
+      const sku = SKU_BY_ID[r.id];
+      if (!sku) return;
+      r.share = sku.default_share_pct ?? 100;
+      r.manual = false;
+      r.vol = sku.block === "fixed" ? 1 : deriveVol(sku, r.share);
+    });
+    renderScenario();
+    renderTotals();
+    saveAuto();
+  }
+
+  // ---- render: scenario blocks ----
+  function renderScenario() {
+    const blockA = document.getElementById("block-a-rows");
+    const blockB = document.getElementById("block-b-rows");
+    blockA.innerHTML = "";
+    blockB.innerHTML = "";
+
+    document.getElementById("scenario-count").textContent =
+      scenario.length ? `${scenario.length} line${scenario.length===1?"":"s"}` : "";
+
+    if (!scenario.length) {
+      blockA.innerHTML = `<div class="scenario-empty">Click pills on the left or apply a bundle. Setup &amp; license items will land here.</div>`;
+      blockB.innerHTML = `<div class="scenario-empty">Transaction-driven items will land here. Set <em>Annual applications</em> + <em>Existing customer base</em> at the top to auto-distribute volumes.</div>`;
+      updateBlockBands();
+      return;
+    }
+
+    const fixedRows = scenario.filter(r => SKU_BY_ID[r.id]?.block === "fixed");
+    const varRows = scenario.filter(r => SKU_BY_ID[r.id]?.block === "variable");
+
+    if (!fixedRows.length) {
+      blockA.innerHTML = `<div class="scenario-empty" style="padding:14px;">No setup or maintenance items yet.</div>`;
+    } else {
+      fixedRows.forEach(r => blockA.appendChild(makeRowA(r)));
+    }
+    if (!varRows.length) {
+      blockB.innerHTML = `<div class="scenario-empty" style="padding:14px;">No transaction items yet.</div>`;
+    } else {
+      varRows.forEach(r => blockB.appendChild(makeRowB(r)));
+    }
+    updateBlockBands();
+  }
+
+  function makeRowA(r) {
+    const s = SKU_BY_ID[r.id];
+    const computed = computeRow(s, r.vol);
+    const row = document.createElement("div");
+    row.className = "row-a";
+    row.dataset.skuId = r.id;
+    const meta = [];
+    if (s.route) meta.push(`<span class="badge">${escapeHtml(s.route)}</span>`);
+    if (s.regulatory_window) meta.push(`<span class="badge">${escapeHtml(s.regulatory_window)}</span>`);
+    meta.push(escapeHtml(s.id));
+    const priceCell = (typeof s.list_price === "number") ? fmtPrice(s.list_price, s.unit) : escapeHtml(String(s.list_price));
+    const totalTxt = computed.computable
+      ? (s.unit === "setup" || s.unit === "one-time" || s.unit === "project" || s.unit === "week"
+          ? eur(computed.oneTime, 0)
+          : eur(computed.monthly, 0))
+      : `<span style="color: var(--amber)">manual</span>`;
+    row.innerHTML = `
+      <div class="sku-info">
+        <span class="sku-name">${escapeHtml(s.name)}</span>
+        <span class="sku-meta">${meta.join(" ")}</span>
+      </div>
+      <div class="price-cell">${priceCell}</div>
+      <div class="qty-cell">
+        <input type="number" min="0" step="any" value="${r.vol}" data-sku="${escapeHtml(r.id)}">
+        <span class="unit-suffix">${unitSuffix(s.unit)}</span>
+      </div>
+      <div class="total-cell">${totalTxt}</div>
+      <button class="remove-btn" data-sku="${escapeHtml(r.id)}" title="Remove">✕</button>
+    `;
+    row.querySelector(".qty-cell input").addEventListener("input", e => setQty(e.target.dataset.sku, e.target.value));
+    row.querySelector(".remove-btn").addEventListener("click", e => removeFromScenario(e.target.dataset.sku));
+    return row;
+  }
+
+  function makeRowB(r) {
+    const s = SKU_BY_ID[r.id];
+    const computed = computeRow(s, r.vol);
+    const row = document.createElement("div");
+    row.className = "row-b";
+    row.dataset.skuId = r.id;
+    const meta = [];
+    if (s.route) meta.push(`<span class="badge">${escapeHtml(s.route)}</span>`);
+    if (s.regulatory_window) meta.push(`<span class="badge">${escapeHtml(s.regulatory_window)}</span>`);
+    if (s.volume_basis === "apps+base") meta.push(`<span class="badge plus-base" title="Volume includes existing customer base">+B</span>`);
+    meta.push(escapeHtml(s.id));
+    const priceCell = (typeof s.list_price === "number") ? fmtPrice(s.list_price, s.unit) : escapeHtml(String(s.list_price));
+    const totalTxt = computed.computable
+      ? eur(computed.monthly, 0)
+      : `<span style="color: var(--amber)">manual</span>`;
+    const shareInputClass = r.manual ? "manual" : "";
+    const shareTitle = r.manual ? "Volume manually set — share is ignored. Click ↻ to switch back to share-driven." : "Share % of annual basis";
+    const resetBtn = r.manual
+      ? `<button class="reset" data-sku="${escapeHtml(r.id)}" title="Reset to share-derived volume">↻</button>`
+      : "";
+    row.innerHTML = `
+      <div class="sku-info">
+        <span class="sku-name">${escapeHtml(s.name)}</span>
+        <span class="sku-meta">${meta.join(" ")}</span>
+      </div>
+      <div class="price-cell">${priceCell}</div>
+      <div class="share-cell" title="${shareTitle}">
+        <input type="number" min="0" step="1" value="${r.share}" class="${shareInputClass}" data-sku="${escapeHtml(r.id)}" ${r.manual ? "disabled" : ""}>
+        <span class="pct">%</span>
+        ${resetBtn}
+      </div>
+      <div class="vol-cell">
+        <input type="number" min="0" step="any" value="${r.vol}" data-sku="${escapeHtml(r.id)}">
+        <span class="unit-suffix">${unitSuffix(s.unit)}</span>
+      </div>
+      <div class="total-cell">${totalTxt}</div>
+      <button class="remove-btn" data-sku="${escapeHtml(r.id)}" title="Remove">✕</button>
+    `;
+    row.querySelector(".share-cell input").addEventListener("input", e => setShare(e.target.dataset.sku, e.target.value));
+    row.querySelector(".vol-cell input").addEventListener("input", e => setVolManual(e.target.dataset.sku, e.target.value));
+    if (r.manual) {
+      row.querySelector(".share-cell .reset").addEventListener("click", e => resetRowToShare(e.target.dataset.sku));
+    }
+    row.querySelector(".remove-btn").addEventListener("click", e => removeFromScenario(e.target.dataset.sku));
+    return row;
+  }
+
+  function updateRowATotal(id) {
+    const s = SKU_BY_ID[id];
+    if (!s) return;
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    const row = document.querySelector(`.row-a[data-sku-id="${cssEscape(id)}"]`);
+    if (!row) return;
+    const cell = row.querySelector(".total-cell");
+    if (!cell) return;
+    const computed = computeRow(s, r.vol);
+    if (computed.computable) {
+      const isOneTime = ["setup","one-time","project","week"].includes(s.unit);
+      cell.textContent = isOneTime ? eur(computed.oneTime, 0) : eur(computed.monthly, 0);
+    } else {
+      cell.innerHTML = '<span style="color: var(--amber)">manual</span>';
+    }
+    updateBlockBands();
+  }
+
+  function updateRowBTotal(id) {
+    const s = SKU_BY_ID[id];
+    if (!s) return;
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    const row = document.querySelector(`.row-b[data-sku-id="${cssEscape(id)}"]`);
+    if (!row) return;
+    const cell = row.querySelector(".total-cell");
+    if (!cell) return;
+    const computed = computeRow(s, r.vol);
+    cell.textContent = computed.computable ? eur(computed.monthly, 0) : "manual";
+    updateBlockBands();
+  }
+
+  function updateRowBVisuals(id) {
+    // Update vol input (if not focused), share input style, total
+    const row = document.querySelector(`.row-b[data-sku-id="${cssEscape(id)}"]`);
+    if (!row) return;
+    const r = scenario.find(x => x.id === id);
+    if (!r) return;
+    const volInput = row.querySelector(".vol-cell input");
+    if (volInput && document.activeElement !== volInput) {
+      volInput.value = r.vol;
+    }
+    const shareInput = row.querySelector(".share-cell input");
+    if (shareInput) {
+      if (r.manual) {
+        shareInput.classList.add("manual");
+        shareInput.disabled = true;
+        if (!row.querySelector(".share-cell .reset")) {
+          const btn = document.createElement("button");
+          btn.className = "reset";
+          btn.dataset.sku = id;
+          btn.title = "Reset to share-derived volume";
+          btn.textContent = "↻";
+          btn.addEventListener("click", e => resetRowToShare(e.target.dataset.sku));
+          row.querySelector(".share-cell").appendChild(btn);
+        }
+      } else {
+        shareInput.classList.remove("manual");
+        shareInput.disabled = false;
+        if (document.activeElement !== shareInput) shareInput.value = r.share;
+        const btn = row.querySelector(".share-cell .reset");
+        if (btn) btn.remove();
+      }
+    }
+    updateRowBTotal(id);
+  }
+
+  function updateBlockBands() {
+    let aMonthly = 0, aOneTime = 0, bMonthly = 0;
+    scenario.forEach(r => {
+      const s = SKU_BY_ID[r.id];
+      if (!s) return;
+      const c = computeRow(s, r.vol);
+      if (s.block === "fixed") {
+        aMonthly += c.monthly;
+        aOneTime += c.oneTime;
+      } else {
+        bMonthly += c.monthly;
+      }
+    });
+    document.getElementById("block-a-totals").textContent =
+      `${eur(aOneTime, 0)} one-time · ${eur(aMonthly, 0)}/mo recurring`;
+    document.getElementById("block-b-totals").textContent =
+      `${eur(bMonthly, 0)}/mo`;
+  }
+
+  // ---- suggestions ----
+  function renderSuggestions() {
+    const root = document.getElementById("suggestions-list");
+    root.innerHTML = "";
+    const idsInScenario = new Set(scenario.map(r => r.id));
+    const cats = new Set(scenario.map(r => SKU_BY_ID[r.id]?.category).filter(Boolean));
+    const matched = [];
+    DATA.suggestions.forEach(rule => {
+      const has = (rule.if_has || []).some(id => idsInScenario.has(id));
+      const hasProgram = (rule.if_has_any_program || []).some(c => cats.has(c));
+      const trigger = has || hasProgram;
+      if (!trigger) return;
+      let stillMissing;
+      if (rule.if_missing_all && rule.if_missing_all.length) {
+        stillMissing = rule.if_missing_all.every(id => !idsInScenario.has(id));
+      } else {
+        stillMissing = rule.then_add.some(id => !idsInScenario.has(id));
+      }
+      if (!stillMissing) return;
+      const toAdd = rule.then_add.filter(id => !idsInScenario.has(id));
+      if (!toAdd.length) return;
+      matched.push({ rule, toAdd });
+    });
+    matched.forEach(({rule, toAdd}) => {
+      const card = document.createElement("div");
+      card.className = "sugg-card";
+      const labelTxt = toAdd.map(id => SKU_BY_ID[id]?.name || id).join(" + ");
+      card.innerHTML = `
+        <div class="text">
+          <strong>${escapeHtml(rule.label)}</strong>
+          <span class="reason">${escapeHtml(rule.reason)} · adds: ${escapeHtml(labelTxt)}</span>
+        </div>
+        <button>+ Add</button>
+      `;
+      card.querySelector("button").addEventListener("click", () => {
+        toAdd.forEach(id => addToScenario(id));
+      });
+      root.appendChild(card);
+    });
+  }
+
+  function renderBundles() {
+    const root = document.getElementById("bundles-list");
+    root.innerHTML = "";
+    DATA.bundles.forEach(b => {
+      const card = document.createElement("div");
+      card.className = "bundle-card";
+      card.innerHTML = `
+        <div class="text">
+          <strong>${escapeHtml(b.name)}</strong>
+          <span class="desc">${escapeHtml(b.description)} · ${b.items.length} SKUs</span>
+        </div>
+        <button>Apply</button>
+      `;
+      card.querySelector("button").addEventListener("click", () => applyBundle(b));
+      root.appendChild(card);
+    });
+  }
+
+  // ---- totals ----
+  function renderTotals() {
+    let monthly = 0, oneTime = 0, ptMonthly = 0;
+    scenario.forEach(({id, vol}) => {
+      const s = SKU_BY_ID[id];
+      if (!s) return;
+      const r = computeRow(s, vol);
+      monthly += r.monthly;
+      oneTime += r.oneTime;
+      ptMonthly += r.ptMonthly;
+    });
+    const term = document.getElementById("term").value;
+    const band = lookupBand(monthly);
+    const eff = effectiveDiscount(term, band.payg, band.prep);
+    const discMo = monthly * (1 - eff);
+    const annual = discMo * 12;
+    const y1 = annual + oneTime;
+    const y2 = annual;
+    const marginMo = discMo - ptMonthly;
+    const marginPct = discMo > 0 ? marginMo / discMo : 0;
+
+    const tierLabel = monthly < 5000 ? "below entry tier" :
+      monthly <= 10000 ? "5k–10k" : monthly <= 25000 ? "10k–25k" :
+      monthly <= 50000 ? "25k–50k" : monthly <= 75000 ? "50k–75k" :
+      monthly <= 100000 ? "75k–100k" : monthly <= 250000 ? "100k–250k" :
+      monthly <= 500000 ? "250k–500k" : monthly <= 1000000 ? "500k–1M" : "1M+ negotiated";
+
+    const root = document.getElementById("totals");
+    root.innerHTML = `
+      <div style="font-weight:600; font-size:13px; margin-bottom: 10px;">Totals · Tier <strong>${tierLabel}</strong> · ${term}</div>
+      <div class="totals-grid">
+        <div class="tile"><div class="lbl">Monthly recurring</div><div class="val">${eur(monthly, 0)}</div></div>
+        <div class="tile"><div class="lbl">Discounted monthly (${(eff*100).toFixed(1)}%)</div><div class="val">${eur(discMo, 0)}</div></div>
+        <div class="tile primary"><div class="lbl">Year 1 total</div><div class="val">${eur(y1, 0)}</div></div>
+        <div class="tile green"><div class="lbl">Year 2+ total</div><div class="val">${eur(y2, 0)}</div></div>
+      </div>
+      <div class="totals-grid">
+        <div class="tile"><div class="lbl">One-time</div><div class="val">${eur(oneTime, 0)}</div></div>
+        <div class="tile"><div class="lbl">Pass-through €/mo</div><div class="val">${eur(ptMonthly, 0)}</div></div>
+        <div class="tile amber"><div class="lbl">Margin €/mo</div><div class="val">${eur(marginMo, 0)}</div></div>
+        <div class="tile"><div class="lbl">Margin %</div><div class="val">${(marginPct*100).toFixed(1)}%</div></div>
+      </div>
+      <div style="font-weight:600; font-size:13px; margin: 12px 0 4px;">Compare terms</div>
+      <table class="compare-table" id="compare-table"></table>
+    `;
+    const cmp = document.getElementById("compare-table");
+    const terms = ["PAYG", "Prepaid 12mo", "Prepaid 24mo", "Prepaid 36mo"];
+    cmp.innerHTML = `
+      <tr><th>Term</th><th>Discount %</th><th>Monthly (disc.)</th><th>Year 1</th><th>Year 2+</th></tr>
+      ${terms.map(t => {
+        const e = effectiveDiscount(t, band.payg, band.prep);
+        const dm = monthly * (1 - e);
+        const a = dm * 12;
+        const y1t = a + oneTime;
+        const isCurrent = t === term;
+        return `<tr class="${isCurrent ? 'recommended' : ''}"><td>${t}${isCurrent ? ' ✓' : ''}</td><td>${(e*100).toFixed(1)}%</td><td>${eur(dm, 0)}</td><td>${eur(y1t, 0)}</td><td>${eur(a, 0)}</td></tr>`;
+      }).join("")}
+    `;
+  }
+
+  // ---- catalogue, special-package, and maintenance views ----
+  function authHeaders() {
+    const token = localStorage.getItem("bernieos_token");
+    return token ? {"Content-Type": "application/json", "Authorization": `Bearer ${token}`} : {"Content-Type": "application/json"};
+  }
+
+  function setView(name) {
+    document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.view === name));
+    document.getElementById("quote-view").style.display = name === "quote" ? "grid" : "none";
+    document.querySelector(".distributor").style.display = name === "quote" ? "flex" : "none";
+    document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+    const target = document.getElementById(`${name}-view`);
+    if (target) target.classList.add("active");
+  }
+
+  function catalogRows(surface = null) {
+    return DATA.skus
+      .filter(s => !surface || s.surface === surface)
+      .sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+  }
+
+  function renderCatalogView(rootId, title, surface = null, intro = "") {
+    const root = document.getElementById(rootId);
+    const rows = catalogRows(surface);
+    root.innerHTML = `
+      <div class="catalog-head">
+        <h2>${escapeHtml(title)}</h2>
+        <input type="search" placeholder="Search ${escapeHtml(title.toLowerCase())}" data-catalog-search>
+        <span style="color:var(--muted)">${rows.length} SKUs. ${escapeHtml(intro)}</span>
+      </div>
+      <table class="catalog-table">
+        <thead><tr><th>SKU</th><th>Category</th><th>Description</th><th>Occurrence</th><th>Price</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>`;
+    const tbody = root.querySelector("tbody");
+    const draw = (filter = "") => {
+      const q = filter.trim().toLowerCase();
+      tbody.innerHTML = rows.filter(s => !q || `${s.id} ${s.name} ${s.category} ${s.description}`.toLowerCase().includes(q)).map(s => `
+        <tr>
+          <td><strong>${escapeHtml(s.name)}</strong><br><span style="color:var(--muted)">${escapeHtml(s.id)}</span> ${s.status === "provisional" ? '<span class="provisional">provisional</span>' : ""}</td>
+          <td>${escapeHtml(s.category)}</td>
+          <td class="desc">${escapeHtml(s.description)}</td>
+          <td>${escapeHtml(s.unit)}</td>
+          <td class="money">${fmtPrice(s.list_price, s.unit)}</td>
+          <td><button class="add-row" data-add="${escapeHtml(s.id)}">Add to quote</button></td>
+        </tr>`).join("");
+      tbody.querySelectorAll("[data-add]").forEach(btn => btn.addEventListener("click", () => {
+        addToScenario(btn.dataset.add);
+        setView("quote");
+      }));
+    };
+    root.querySelector("[data-catalog-search]").addEventListener("input", e => draw(e.target.value));
+    draw();
+  }
+
+  function renderMaintenance() {
+    const root = document.getElementById("maintenance-view");
+    const rows = catalogRows();
+    root.innerHTML = `
+      <div class="catalog-head">
+        <h2>Maintenance</h2>
+        <input type="search" placeholder="Search SKU to edit" data-maint-search>
+        <span style="color:var(--muted)">Edits persist to the s1 backend and override generated defaults.</span>
+      </div>
+      <table class="catalog-table">
+        <thead><tr><th>SKU</th><th>Category</th><th>Occurrence</th><th>Unit price</th><th>Pass-through</th><th>Margin %</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>`;
+    const tbody = root.querySelector("tbody");
+    const draw = (filter = "") => {
+      const q = filter.trim().toLowerCase();
+      tbody.innerHTML = rows.filter(s => !q || `${s.id} ${s.name} ${s.category}`.toLowerCase().includes(q)).map(s => `
+        <tr data-maint-id="${escapeHtml(s.id)}">
+          <td><strong>${escapeHtml(s.name)}</strong><br><span style="color:var(--muted)">${escapeHtml(s.id)}</span></td>
+          <td><input data-field="category" value="${escapeHtml(s.category)}"></td>
+          <td><select data-field="occurrence_type">${OCCURRENCE_TYPES.map(u => `<option ${u === s.unit ? "selected" : ""}>${u}</option>`).join("")}</select></td>
+          <td><input data-field="list_price" type="number" min="0" step="any" value="${typeof s.list_price === "number" ? s.list_price : ""}"></td>
+          <td><input data-field="pass_through_cost" type="number" min="0" step="any" value="${typeof s.pass_through_cost === "number" ? s.pass_through_cost : ""}"></td>
+          <td><input data-field="default_margin_pct" type="number" min="0" step="any" value="${typeof s.default_margin_pct === "number" ? s.default_margin_pct : ""}"></td>
+          <td><button class="save-row">Save</button></td>
+        </tr>`).join("");
+      tbody.querySelectorAll(".save-row").forEach(btn => btn.addEventListener("click", () => saveMaintenanceRow(btn.closest("tr"))));
+    };
+    root.querySelector("[data-maint-search]").addEventListener("input", e => draw(e.target.value));
+    draw();
+  }
+
+  async function saveMaintenanceRow(row) {
+    const id = row.dataset.maintId;
+    const value = field => row.querySelector(`[data-field="${field}"]`).value;
+    const numeric = field => value(field) === "" ? null : Number(value(field));
+    const payload = {
+      category: value("category"),
+      occurrence_type: value("occurrence_type"),
+      list_price: numeric("list_price"),
+      pass_through_cost: numeric("pass_through_cost"),
+      default_margin_pct: numeric("default_margin_pct"),
+    };
+    const response = await fetch(`${API_BASE}/overrides/${encodeURIComponent(id)}`, {
+      method: "PUT", headers: authHeaders(), body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      alert(response.status === 401 ? "Open Nerve and log in first; the pricing cockpit uses the same operator token." : `Save failed (${response.status})`);
+      return;
+    }
+    applyOverride(id, await response.json());
+    flashStatus(`Saved ${id}`);
+    renderAllCatalogViews();
+    renderCategories(document.getElementById("search").value);
+    renderScenario();
+    renderTotals();
+  }
+
+  function applyOverride(id, override) {
+    const sku = SKU_BY_ID[id];
+    if (!sku) return;
+    if (override.list_price !== null && override.list_price !== undefined) sku.list_price = Number(override.list_price);
+    if (override.occurrence_type) sku.unit = override.occurrence_type;
+    if (override.category) sku.category = override.category;
+    if (override.pass_through_cost !== null && override.pass_through_cost !== undefined) sku.pass_through_cost = Number(override.pass_through_cost);
+    if (override.default_margin_pct !== null && override.default_margin_pct !== undefined) sku.default_margin_pct = Number(override.default_margin_pct);
+    sku.block = (sku.unit === "transaction" || (sku.unit === "year" && ["AML-MONITORING","AML-MONITORING-AM-SURCHARGE","KYB-TRMONITOR","TB-FACEAUTH"].includes(id))) ? "variable" : "fixed";
+    sku.volume_basis = sku.block === "variable" ? (sku.volume_basis === "apps+base" ? "apps+base" : "apps") : "fixed";
+  }
+
+  async function loadOverrides() {
+    try {
+      const response = await fetch(`${API_BASE}/overrides`, {headers: authHeaders()});
+      if (!response.ok) return;
+      const payload = await response.json();
+      payload.overrides.forEach(o => applyOverride(o.sku_id, o));
+    } catch (e) {}
+  }
+
+  function renderAllCatalogViews() {
+    renderCatalogView("overview-view", "SKU overview", null, "Canonical catalog with current runtime overrides.");
+    renderCatalogView("account-origination-view", "Account Origination", "account-origination", "Dedicated AO, KYB, workflow, and backoffice package surface.");
+    renderCatalogView("aletheia-view", "Aletheia", "aletheia", "Provisional doc-forensics pricing, kept separate from the general SKU grid.");
+    renderMaintenance();
+  }
+
+  // ---- persistence ----
+  const STORAGE_KEY = "idcanopy-cockpit-current-v3";
+  const SAVED_KEY = "idcanopy-cockpit-saved-v3";
+  function saveAuto() {
+    const state = {
+      customer: document.getElementById("customer").value,
+      term: document.getElementById("term").value,
+      notes: document.getElementById("notes-area").value,
+      annualApps,
+      existingBase,
+      scenario,
+    };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function loadAuto() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      document.getElementById("customer").value = state.customer || "";
+      document.getElementById("term").value = state.term || "Prepaid 36mo";
+      document.getElementById("notes-area").value = state.notes || "";
+      annualApps = Number(state.annualApps) || 0;
+      existingBase = Number(state.existingBase) || 0;
+      document.getElementById("annual-apps").value = annualApps;
+      document.getElementById("existing-base").value = existingBase;
+      scenario = Array.isArray(state.scenario) ? state.scenario.map(r => ({
+        id: r.id,
+        vol: Number(r.vol) || 0,
+        share: Number(r.share) || (SKU_BY_ID[r.id]?.default_share_pct ?? 100),
+        manual: r.manual === true,
+      })) : [];
+    } catch (e) {}
+  }
+
+  function saveScenarioByName() {
+    const customer = document.getElementById("customer").value || "Untitled";
+    const name = prompt("Save scenario as:", customer);
+    if (!name) return;
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(SAVED_KEY) || "{}"); } catch (e) {}
+    saved[name] = {
+      customer: document.getElementById("customer").value,
+      term: document.getElementById("term").value,
+      notes: document.getElementById("notes-area").value,
+      annualApps, existingBase, scenario,
+      saved_at: new Date().toISOString(),
+    };
+    localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+    flashStatus(`Saved: ${name}`);
+  }
+
+  function loadScenarioByName() {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(SAVED_KEY) || "{}"); } catch (e) {}
+    const names = Object.keys(saved);
+    if (!names.length) { alert("No saved scenarios."); return; }
+    const name = prompt("Load which scenario? Names:\n" + names.join("\n"), names[0]);
+    if (!name || !saved[name]) return;
+    const s = saved[name];
+    document.getElementById("customer").value = s.customer || "";
+    document.getElementById("term").value = s.term || "Prepaid 36mo";
+    document.getElementById("notes-area").value = s.notes || "";
+    annualApps = Number(s.annualApps) || 0;
+    existingBase = Number(s.existingBase) || 0;
+    document.getElementById("annual-apps").value = annualApps;
+    document.getElementById("existing-base").value = existingBase;
+    scenario = Array.isArray(s.scenario) ? s.scenario : [];
+    renderScenario();
+    renderSuggestions();
+    renderTotals();
+  }
+
+  function exportJson() {
+    const state = {
+      customer: document.getElementById("customer").value,
+      term: document.getElementById("term").value,
+      notes: document.getElementById("notes-area").value,
+      annualApps, existingBase, scenario,
+      exported_at: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `idcanopy-quote-${(state.customer || "untitled").replace(/[^a-z0-9]/gi, "-")}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function importJson(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const s = JSON.parse(e.target.result);
+        document.getElementById("customer").value = s.customer || "";
+        document.getElementById("term").value = s.term || "Prepaid 36mo";
+        document.getElementById("notes-area").value = s.notes || "";
+        annualApps = Number(s.annualApps) || 0;
+        existingBase = Number(s.existingBase) || 0;
+        document.getElementById("annual-apps").value = annualApps;
+        document.getElementById("existing-base").value = existingBase;
+        scenario = Array.isArray(s.scenario) ? s.scenario : [];
+        renderScenario();
+        renderSuggestions();
+        renderTotals();
+        flashStatus("Imported.");
+      } catch (err) { alert("Invalid JSON: " + err.message); }
+    };
+    reader.readAsText(file);
+  }
+
+  function copySummary() {
+    let monthly = 0, oneTime = 0;
+    const lines = [];
+    scenario.forEach(({id, vol}) => {
+      const s = SKU_BY_ID[id];
+      if (!s) return;
+      const r = computeRow(s, vol);
+      monthly += r.monthly;
+      oneTime += r.oneTime;
+      const price = (typeof s.list_price === "number")
+        ? "€" + s.list_price.toFixed(2) + " " + unitSuffix(s.unit)
+        : String(s.list_price);
+      const totalLine = (s.unit === "setup" || s.unit === "one-time" || s.unit === "project" || s.unit === "week")
+        ? `one-time €${r.oneTime.toLocaleString("de-DE", {maximumFractionDigits: 0})}`
+        : `€${r.monthly.toLocaleString("de-DE", {maximumFractionDigits: 0})}/mo`;
+      lines.push(`• ${s.name}  ${price} × ${vol}  →  ${totalLine}`);
+    });
+    const term = document.getElementById("term").value;
+    const band = lookupBand(monthly);
+    const eff = effectiveDiscount(term, band.payg, band.prep);
+    const discMo = monthly * (1 - eff);
+    const annual = discMo * 12;
+    const y1 = annual + oneTime;
+    const customer = document.getElementById("customer").value || "(no customer)";
+    const txt = [
+      `IDCanopy quote — ${customer}`,
+      `Term: ${term}`,
+      `Annual applications: ${annualApps.toLocaleString("de-DE")} · Existing base: ${existingBase.toLocaleString("de-DE")}`,
+      "",
+      "Line items:",
+      ...lines,
+      "",
+      `Monthly recurring: €${monthly.toLocaleString("de-DE",{maximumFractionDigits:0})}`,
+      `Effective discount: ${(eff*100).toFixed(1)}%`,
+      `Discounted monthly: €${discMo.toLocaleString("de-DE",{maximumFractionDigits:0})}`,
+      `Annual recurring: €${annual.toLocaleString("de-DE",{maximumFractionDigits:0})}`,
+      `One-time: €${oneTime.toLocaleString("de-DE",{maximumFractionDigits:0})}`,
+      `Year 1 total: €${y1.toLocaleString("de-DE",{maximumFractionDigits:0})}`,
+      `Year 2+ total: €${annual.toLocaleString("de-DE",{maximumFractionDigits:0})}`,
+    ].join("\n");
+    const notes = document.getElementById("notes-area").value;
+    const final = notes ? txt + "\n\nNotes:\n" + notes : txt;
+    navigator.clipboard.writeText(final).then(
+      () => flashStatus("Copied summary to clipboard."),
+      err => alert("Clipboard failed: " + err.message)
+    );
+  }
+
+  let statusTimer = null;
+  function flashStatus(msg) {
+    const el = document.getElementById("status-msg");
+    el.textContent = msg;
+    el.style.color = "var(--green)";
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { el.textContent = ""; el.style.color = "var(--muted)"; }, 2400);
+  }
+
+  // ---- wire up ----
+  document.getElementById("search").addEventListener("input", e => renderCategories(e.target.value));
+  document.getElementById("term").addEventListener("change", renderTotals);
+  document.getElementById("customer").addEventListener("input", saveAuto);
+  document.getElementById("notes-area").addEventListener("input", saveAuto);
+  document.getElementById("annual-apps").addEventListener("input", e => setAnnualApps(e.target.value));
+  document.getElementById("existing-base").addEventListener("input", e => setExistingBase(e.target.value));
+  document.getElementById("reset-shares-btn").addEventListener("click", resetSharesToDefaults);
+  document.getElementById("clear-btn").addEventListener("click", clearAll);
+  document.getElementById("copy-btn").addEventListener("click", copySummary);
+  document.getElementById("print-btn").addEventListener("click", () => window.print());
+  document.getElementById("save-btn").addEventListener("click", saveScenarioByName);
+  document.getElementById("load-btn").addEventListener("click", loadScenarioByName);
+  document.getElementById("export-btn").addEventListener("click", exportJson);
+  document.getElementById("import-btn").addEventListener("click", () => document.getElementById("import-file").click());
+  document.getElementById("import-file").addEventListener("change", e => {
+    if (e.target.files[0]) importJson(e.target.files[0]);
+    e.target.value = "";
+  });
+  document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => setView(tab.dataset.view)));
+
+  async function init() {
+    await loadOverrides();
+    loadAuto();
+    renderCategories();
+    renderBundles();
+    renderScenario();
+    renderSuggestions();
+    renderTotals();
+    renderAllCatalogViews();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
