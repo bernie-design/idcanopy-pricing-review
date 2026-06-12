@@ -281,6 +281,51 @@ main {
   color: var(--muted);
   font-size: 13px;
 }
+/* Block A quick-select palette — click chips to toggle fixed setup/license/maintenance items */
+.block-a-palette {
+  padding: 10px 12px;
+  background: var(--block-a-bg);
+  border-bottom: 1px solid var(--border);
+}
+.block-a-palette .pal-group { margin-bottom: 8px; }
+.block-a-palette .pal-group:last-child { margin-bottom: 0; }
+.block-a-palette .pal-cat {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #075985;
+  font-weight: 600;
+  margin: 0 0 4px 2px;
+}
+.block-a-palette .pal-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.block-a-palette .pal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--block-a-border);
+  cursor: pointer;
+  font-size: 11.5px;
+  color: var(--text);
+  user-select: none;
+  transition: background .1s, border-color .1s;
+}
+.block-a-palette .pal-chip:hover { border-color: #38bdf8; }
+.block-a-palette .pal-chip .pal-price {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+.block-a-palette .pal-chip.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #fff;
+}
+.block-a-palette .pal-chip.active .pal-price { color: #e0f2fe; }
+.block-a-palette .pal-chip.active::before { content: "✓ "; font-weight: 700; }
+body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
 /* Block A row: SKU info | price | qty | total | remove */
 .row-a {
   display: grid;
@@ -575,6 +620,7 @@ main {
         <span>🏛 Setup, license &amp; maintenance</span>
         <span class="totals" id="block-a-totals"></span>
       </div>
+      <div id="block-a-palette" class="block-a-palette"></div>
       <div id="block-a-rows"></div>
       <div class="block-band block-b">
         <span>⚡ Transactions</span>
@@ -758,6 +804,49 @@ main {
   }
 
   // ---- left categories ----
+  // Quick-select palette for Block A (fixed setup/license/maintenance). Click a chip
+  // to toggle the item in/out of the scenario, grouped by category.
+  function renderBlockAPalette() {
+    const root = document.getElementById("block-a-palette");
+    if (!root) return;
+    root.innerHTML = "";
+    const inScenario = new Set(scenario.map(r => r.id));
+    const byCat = {};
+    DATA.skus.forEach(s => {
+      if (s.surface !== "general" || s.block !== "fixed") return;
+      if (s.status === "parked") return;
+      (byCat[s.category] = byCat[s.category] || []).push(s);
+    });
+    const order = [...DATA.category_order, ...Object.keys(byCat).filter(c => !DATA.category_order.includes(c))];
+    order.forEach(cat => {
+      const list = byCat[cat];
+      if (!list || !list.length) return;
+      const group = document.createElement("div");
+      group.className = "pal-group";
+      const head = document.createElement("div");
+      head.className = "pal-cat";
+      head.textContent = cat;
+      group.appendChild(head);
+      const chips = document.createElement("div");
+      chips.className = "pal-chips";
+      list.forEach(s => {
+        const chip = document.createElement("div");
+        chip.className = "pal-chip" + (inScenario.has(s.id) ? " active" : "");
+        chip.title = (s.description || "") + (s.note ? "\n\n" + s.note : "");
+        const ep = effectiveUnitPrice(s);
+        const priceTxt = typeof ep === "number" ? fmtPrice(ep, s.unit) : String(ep ?? "");
+        chip.innerHTML = `<span class="pal-name">${escapeHtml(s.name)}</span><span class="pal-price">${escapeHtml(priceTxt)}</span>`;
+        chip.addEventListener("click", () => {
+          if (inScenario.has(s.id)) removeFromScenario(s.id);
+          else addToScenario(s.id);
+        });
+        chips.appendChild(chip);
+      });
+      group.appendChild(chips);
+      root.appendChild(group);
+    });
+  }
+
   function renderCategories(filterText = "") {
     const root = document.getElementById("categories");
     root.innerHTML = "";
@@ -766,6 +855,7 @@ main {
     DATA.category_order.forEach(c => skusByCat[c] = []);
     DATA.skus.forEach(s => {
       if (s.surface !== "general") return;
+      if (s.block === "fixed") return;  // fixed setup/license/maintenance live in the Block A quick-select palette
       if (!skusByCat[s.category]) skusByCat[s.category] = [];
       const matches = !filter || (
         s.name.toLowerCase().includes(filter) ||
@@ -975,6 +1065,7 @@ main {
 
   // ---- render: scenario blocks ----
   function renderScenario() {
+    renderBlockAPalette();
     const blockA = document.getElementById("block-a-rows");
     const blockB = document.getElementById("block-b-rows");
     blockA.innerHTML = "";
@@ -984,7 +1075,7 @@ main {
       scenario.length ? `${scenario.length} line${scenario.length===1?"":"s"}` : "";
 
     if (!scenario.length) {
-      blockA.innerHTML = `<div class="scenario-empty">Click pills on the left or apply a bundle. Setup &amp; license items will land here.</div>`;
+      blockA.innerHTML = `<div class="scenario-empty">Click a chip in the quick-select palette above (or apply a bundle). Setup, license &amp; maintenance items will land here.</div>`;
       blockB.innerHTML = `<div class="scenario-empty">Transaction-driven items will land here. Set <em>Annual applications</em> + <em>Existing customer base</em> at the top to auto-distribute volumes.</div>`;
       updateBlockBands();
       return;
