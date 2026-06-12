@@ -647,12 +647,23 @@ main {
     return 1;
   }
 
-  function unitSuffix(unit) {
+  function priceUnitSuffix(unit) {
     switch (unit) {
-      case "transaction": return "/mo";
+      case "transaction": return "/tx";
       case "month": return "/mo";
       case "year": return "/yr";
       case "setup": case "one-time": case "project": return "fix";
+      case "week": return "wk";
+      default: return "";
+    }
+  }
+
+  function volumeUnitSuffix(unit) {
+    switch (unit) {
+      case "transaction": return "tx/mo";
+      case "month": return "mo";
+      case "year": return "records";
+      case "setup": case "one-time": case "project": return "qty";
       case "week": return "wk";
       default: return "";
     }
@@ -665,7 +676,7 @@ main {
 
   function fmtPrice(p, unit) {
     if (typeof p !== "number") return String(p ?? "");
-    return "€" + p.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + unitSuffix(unit);
+    return "€" + p.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + priceUnitSuffix(unit);
   }
 
   function lookupBand(monthly) {
@@ -964,7 +975,7 @@ main {
       <div class="price-cell">${priceCell}</div>
       <div class="qty-cell">
         <input type="number" min="0" step="any" value="${r.vol}" data-sku="${escapeHtml(r.id)}">
-        <span class="unit-suffix">${unitSuffix(s.unit)}</span>
+        <span class="unit-suffix">${volumeUnitSuffix(s.unit)}</span>
       </div>
       <div class="total-cell">${totalTxt}</div>
       <button class="remove-btn" data-sku="${escapeHtml(r.id)}" title="Remove">✕</button>
@@ -1007,7 +1018,7 @@ main {
       </div>
       <div class="vol-cell">
         <input type="number" min="0" step="any" value="${r.vol}" data-sku="${escapeHtml(r.id)}">
-        <span class="unit-suffix">${unitSuffix(s.unit)}</span>
+        <span class="unit-suffix">${volumeUnitSuffix(s.unit)}</span>
       </div>
       <div class="total-cell">${totalTxt}</div>
       <button class="remove-btn" data-sku="${escapeHtml(r.id)}" title="Remove">✕</button>
@@ -1490,7 +1501,7 @@ main {
       monthly += r.monthly;
       oneTime += r.oneTime;
       const price = (typeof s.list_price === "number")
-        ? "€" + s.list_price.toFixed(2) + " " + unitSuffix(s.unit)
+        ? "€" + s.list_price.toFixed(2) + " " + priceUnitSuffix(s.unit)
         : String(s.list_price);
       const totalLine = (s.unit === "setup" || s.unit === "one-time" || s.unit === "project" || s.unit === "week")
         ? `one-time €${r.oneTime.toLocaleString("de-DE", {maximumFractionDigits: 0})}`
