@@ -698,15 +698,13 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
   // ---- compute ----
   function computeRow(sku, vol) {
     const p = effectiveUnitPrice(sku);
-    const pt = sku.pass_through_cost;
-    const out = { monthly: 0, oneTime: 0, ptMonthly: 0, computable: false };
+    const out = { monthly: 0, oneTime: 0, computable: false };
     if (typeof p !== "number") return out;
     out.computable = true;
     const v = Number(vol) || 0;
     switch (sku.unit) {
       case "transaction":
         out.monthly = p * v;
-        if (typeof pt === "number") out.ptMonthly = pt * v;
         break;
       case "month":
         out.monthly = p * Math.max(v, 1);
@@ -1451,14 +1449,13 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
 
   // ---- totals ----
   function renderTotals() {
-    let monthly = 0, oneTime = 0, ptMonthly = 0;
+    let monthly = 0, oneTime = 0;
     scenario.forEach(({id, vol}) => {
       const s = SKU_BY_ID[id];
       if (!s) return;
       const r = computeRow(s, vol);
       monthly += r.monthly;
       oneTime += r.oneTime;
-      ptMonthly += r.ptMonthly;
     });
     const term = document.getElementById("term").value;
     const band = lookupBand(monthly);
@@ -1467,8 +1464,6 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
     const annual = discMo * 12;
     const y1 = annual + oneTime;
     const y2 = annual;
-    const marginMo = discMo - ptMonthly;
-    const marginPct = discMo > 0 ? marginMo / discMo : 0;
 
     const tierLabel = monthly < 5000 ? "below entry tier" :
       monthly <= 10000 ? "5k–10k" : monthly <= 25000 ? "10k–25k" :
@@ -1480,9 +1475,6 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
     const internalTotals = DATA.internal ? `
       <div class="totals-grid">
         <div class="tile"><div class="lbl">One-time</div><div class="val">${eur(oneTime, 0)}</div></div>
-        <div class="tile"><div class="lbl">Pass-through €/mo</div><div class="val">${eur(ptMonthly, 0)}</div></div>
-        <div class="tile amber"><div class="lbl">Margin €/mo</div><div class="val">${eur(marginMo, 0)}</div></div>
-        <div class="tile"><div class="lbl">Margin %</div><div class="val">${(marginPct*100).toFixed(1)}%</div></div>
       </div>` : `
       <div class="totals-grid">
         <div class="tile"><div class="lbl">One-time</div><div class="val">${eur(oneTime, 0)}</div></div>
@@ -1573,37 +1565,56 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
 
   function renderMaintenance() {
     const root = document.getElementById("maintenance-view");
-    const rows = catalogRows();
+    const sections = [
+      ["general", "General pricing", "Core platform, identity, compliance, packages, and project services."],
+      ["aletheia", "Aletheia SKUs & services", "Dedicated forensic-document setup and transaction services."],
+      ["account-origination", "Account Origination SKUs & services", "Dedicated AO, KYB, workflow, and backoffice services."],
+    ];
     root.innerHTML = `
       <div class="catalog-head">
         <h2>Maintenance</h2>
         <input type="search" placeholder="Search SKU to edit" data-maint-search>
-        <button class="add-row" data-create-sku>+ New SKU</button>
         <span style="color:var(--muted)">Edits persist to the backend; static review edits stay in this browser.</span>
       </div>
-      <table class="catalog-table">
-        <thead><tr><th>SKU / name</th><th>Category</th><th>Surface</th><th>Occurrence</th><th>Unit price</th><th>Pass-through</th><th>Margin %</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>`;
-    const tbody = root.querySelector("tbody");
+      ${sections.map(([surface, title, intro]) => `
+        <section class="maintenance-section" data-maint-surface="${surface}">
+          <div class="catalog-head">
+            <h3>${escapeHtml(title)}</h3>
+            <button class="add-row" data-create-surface="${surface}">+ New SKU / service</button>
+            <span style="color:var(--muted)">${escapeHtml(intro)}</span>
+          </div>
+          <table class="catalog-table">
+            <thead><tr><th>SKU / name / description</th><th>Category</th><th>Surface</th><th>Occurrence</th><th>Unit price</th><th>Pass-through base</th><th>Margin % (entry)</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </section>`).join("")}`;
+
     const draw = (filter = "") => {
       const q = filter.trim().toLowerCase();
-      tbody.innerHTML = rows.filter(s => !q || `${s.id} ${s.name} ${s.category}`.toLowerCase().includes(q)).map(s => `
-        <tr data-maint-id="${escapeHtml(s.id)}">
-          <td><input data-field="name" value="${escapeHtml(s.name)}"><br><span style="color:var(--muted)">${escapeHtml(s.id)}</span></td>
-          <td><input data-field="category" value="${escapeHtml(s.category)}"></td>
-          <td><select data-field="surface">${SURFACES.map(v => `<option value="${v}" ${v === s.surface ? "selected" : ""}>${v}</option>`).join("")}</select></td>
-          <td><select data-field="occurrence_type">${OCCURRENCE_TYPES.map(u => `<option ${u === s.unit ? "selected" : ""}>${u}</option>`).join("")}</select></td>
-          <td><input data-field="list_price" type="number" min="0" step="any" value="${typeof s.list_price === "number" ? s.list_price : ""}"></td>
-          <td><input data-field="pass_through_cost" type="number" min="0" step="any" value="${typeof s.pass_through_cost === "number" ? s.pass_through_cost : ""}"></td>
-          <td><input data-field="default_margin_pct" type="number" min="0" step="any" value="${typeof s.default_margin_pct === "number" ? s.default_margin_pct : ""}"></td>
-          <td><button class="save-row">Save</button> <button class="delete-row">Delete</button></td>
-        </tr>`).join("");
-      tbody.querySelectorAll(".save-row").forEach(btn => btn.addEventListener("click", () => saveMaintenanceRow(btn.closest("tr"))));
-      tbody.querySelectorAll(".delete-row").forEach(btn => btn.addEventListener("click", () => deleteMaintenanceRow(btn.closest("tr"))));
+      sections.forEach(([surface]) => {
+        const tbody = root.querySelector(`[data-maint-surface="${surface}"] tbody`);
+        const rows = catalogRows(surface).filter(s => !q || `${s.id} ${s.name} ${s.category} ${s.description}`.toLowerCase().includes(q));
+        tbody.innerHTML = rows.map(s => `
+          <tr data-maint-id="${escapeHtml(s.id)}">
+            <td>
+              <input data-field="name" value="${escapeHtml(s.name)}"><br>
+              <span style="color:var(--muted)">${escapeHtml(s.id)}</span><br>
+              <textarea data-field="description" rows="2" placeholder="Description">${escapeHtml(s.description || "")}</textarea>
+            </td>
+            <td><input data-field="category" value="${escapeHtml(s.category)}"></td>
+            <td><select data-field="surface">${SURFACES.map(v => `<option value="${v}" ${v === s.surface ? "selected" : ""}>${v}</option>`).join("")}</select></td>
+            <td><select data-field="occurrence_type">${OCCURRENCE_TYPES.map(u => `<option ${u === s.unit ? "selected" : ""}>${u}</option>`).join("")}</select></td>
+            <td><input data-field="list_price" type="number" min="0" step="any" value="${typeof s.list_price === "number" ? s.list_price : ""}"></td>
+            <td><input data-field="pass_through_cost" type="number" min="0" step="any" value="${typeof s.pass_through_cost === "number" ? s.pass_through_cost : ""}"></td>
+            <td><input data-field="default_margin_pct" type="number" min="0" step="any" value="${typeof s.default_margin_pct === "number" ? s.default_margin_pct : ""}"></td>
+            <td><button class="save-row">Save</button> <button class="delete-row">Delete</button></td>
+          </tr>`).join("");
+        tbody.querySelectorAll(".save-row").forEach(btn => btn.addEventListener("click", () => saveMaintenanceRow(btn.closest("tr"))));
+        tbody.querySelectorAll(".delete-row").forEach(btn => btn.addEventListener("click", () => deleteMaintenanceRow(btn.closest("tr"))));
+      });
     };
     root.querySelector("[data-maint-search]").addEventListener("input", e => draw(e.target.value));
-    root.querySelector("[data-create-sku]").addEventListener("click", createSku);
+    root.querySelectorAll("[data-create-surface]").forEach(btn => btn.addEventListener("click", () => createSku(btn.dataset.createSurface)));
     draw();
   }
 
@@ -1644,6 +1655,7 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
     const current = SKU_BY_ID[id];
     const payload = {
       name: value("name"),
+      description: value("description"),
       category: value("category"),
       surface: value("surface"),
       occurrence_type: value("occurrence_type"),
@@ -1666,7 +1678,7 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
     renderTotals();
   }
 
-  async function createSku() {
+  async function createSku(surface = "general") {
     const id = (prompt("New SKU code (for example CUSTOM-QES-01):") || "").trim().toUpperCase();
     if (!id) return;
     if (SKU_BY_ID[id] && !SKU_BY_ID[id].is_deleted) {
@@ -1679,7 +1691,7 @@ body.reseller-buy .block-a-palette .pal-chip .pal-price { display: none; }
       name,
       description: "",
       category: "Custom",
-      surface: "general",
+      surface,
       occurrence_type: "transaction",
       list_price: 0,
       pass_through_cost: null,
